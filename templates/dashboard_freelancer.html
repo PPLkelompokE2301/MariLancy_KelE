@@ -1,0 +1,71 @@
+<!-- Author: Hanif -->
+<!-- PBI: KF-13 -->
+<!-- Sprint: Sprint 1 -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Freelancer Dashboard - MariLancy</title>
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+<main class="page-shell">
+  <!-- Author: Hanif -->
+  <!-- PBI: KF-13 -->
+  <!-- Sprint: Sprint 1 -->
+  <section class="page-hero">
+    <p class="eyebrow">KF-13</p>
+    <h1>Dashboard Freelancer</h1>
+    <p>Ringkasan profil freelancer yang terhubung langsung ke halaman kelola profil.</p>
+  </section>
+
+  <!-- Author: Hanif -->
+  <!-- PBI: KF-13 -->
+  <!-- Sprint: Sprint 1 -->
+  <section class="card">
+    <div class="section-head">
+      <div>
+        <h2>Ringkasan Profil</h2>
+        <p id="freelancerSubtitle">Memuat data freelancer...</p>
+      </div>
+      <a class="button-link" href="/freelancer/profile/view">Kelola Profil</a>
+    </div>
+
+    <div class="stats-grid compact">
+      <article class="stat-box">
+        <span>Nama</span>
+        <strong id="freelancerName">-</strong>
+      </article>
+      <article class="stat-box">
+        <span>Lokasi</span>
+        <strong id="freelancerLocation">-</strong>
+      </article>
+      <article class="stat-box">
+        <span>Minat Kerja</span>
+        <strong id="freelancerInterest">-</strong>
+      </article>
+      <article class="stat-box">
+        <span>Skill</span>
+        <strong id="freelancerSkill">-</strong>
+      </article>
+    </div>
+  </section>
+</main>
+
+<!-- Author: Hanif -->
+<!-- PBI: KF-13 -->
+<!-- Sprint: Sprint 1 -->
+<script>
+async function loadFreelancerSummary() {
+  const data = await fetch("/freelancer/profile").then((response) => response.json())
+  document.getElementById("freelancerName").innerText = data.nama || "-"
+  document.getElementById("freelancerLocation").innerText = data.location || "-"
+  document.getElementById("freelancerInterest").innerText = data.job_interest || "-"
+  document.getElementById("freelancerSkill").innerText = data.skill || "-"
+  document.getElementById("freelancerSubtitle").innerText = data.email || "Belum ada email tersimpan"
+}
+
+loadFreelancerSummary()
+</script>
+</body>
+</html>

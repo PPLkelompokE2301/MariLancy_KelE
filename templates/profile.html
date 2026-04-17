@@ -1,0 +1,95 @@
+<!-- Author: Fadhil -->
+<!-- PBI: KF-02 -->
+<!-- Sprint: Sprint 1 -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Client Profile - MariLancy</title>
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+<main class="page-shell narrow">
+  <!-- Author: Fadhil -->
+  <!-- PBI: KF-02 -->
+  <!-- Sprint: Sprint 1 -->
+  <section class="page-hero">
+    <p class="eyebrow">KF-02</p>
+    <h1>Kelola Profil Client</h1>
+    <p>Form dasar untuk melihat dan memperbarui profil client.</p>
+  </section>
+
+  <!-- Author: Fadhil -->
+  <!-- PBI: KF-02 -->
+  <!-- Sprint: Sprint 1 -->
+  <section class="card">
+    <div class="section-head">
+      <h2>Data Client</h2>
+      <a class="button-link" href="/client">Kembali ke Dashboard</a>
+    </div>
+
+    <form id="clientForm" class="form-grid">
+      <input id="nama" placeholder="Nama Client">
+      <input id="email" placeholder="Email" disabled>
+      <input id="lokasi" placeholder="Lokasi">
+      <input id="jenis_usaha" placeholder="Jenis Usaha">
+      <input id="jumlah_pegawai" type="number" placeholder="Jumlah Pegawai">
+      <input id="kontak" placeholder="Kontak">
+      <input id="galeri" class="full" placeholder="Galeri">
+      <textarea id="deskripsi" class="full" placeholder="Deskripsi"></textarea>
+      <textarea id="kultur_perusahaan" class="full" placeholder="Kultur Perusahaan"></textarea>
+    </form>
+
+    <div class="actions-row">
+      <button onclick="updateProfile()">Simpan Profil</button>
+      <button class="secondary" onclick="loadProfile()">Muat Ulang</button>
+    </div>
+  </section>
+</main>
+
+<!-- Author: Fadhil -->
+<!-- PBI: KF-02 -->
+<!-- Sprint: Sprint 1 -->
+<script>
+async function loadProfile() {
+  const data = await fetch("/client/profile").then((response) => response.json())
+  document.getElementById("nama").value = data.nama_client || ""
+  document.getElementById("email").value = data.email || ""
+  document.getElementById("lokasi").value = data.lokasi || ""
+  document.getElementById("jenis_usaha").value = data.jenis_usaha || ""
+  document.getElementById("jumlah_pegawai").value = data.jumlah_pegawai || 0
+  document.getElementById("kontak").value = data.kontak || ""
+  document.getElementById("galeri").value = data.galeri || ""
+  document.getElementById("deskripsi").value = data.deskripsi || ""
+  document.getElementById("kultur_perusahaan").value = data.kultur_perusahaan || ""
+}
+
+async function updateProfile() {
+  const data = {
+    nama_client: document.getElementById("nama").value,
+    lokasi: document.getElementById("lokasi").value,
+    jenis_usaha: document.getElementById("jenis_usaha").value,
+    jumlah_pegawai: parseInt(document.getElementById("jumlah_pegawai").value, 10) || 0,
+    kontak: document.getElementById("kontak").value,
+    galeri: document.getElementById("galeri").value,
+    deskripsi: document.getElementById("deskripsi").value,
+    kultur_perusahaan: document.getElementById("kultur_perusahaan").value,
+  }
+
+  const res = await fetch("/client/profile", {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  })
+
+  const result = await res.json()
+  alert(result.message || result.error || "Profil diperbarui")
+  loadProfile()
+}
+
+loadProfile()
+</script>
+</body>
+</html>

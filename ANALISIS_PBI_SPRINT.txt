@@ -1,0 +1,653 @@
+ANALISIS FITUR, MAPPING PBI, SPRINT, DAN OWNERSHIP FILE
+
+Project: MariLancy
+
+Dokumen ini disusun berdasarkan hasil pembacaan struktur project pada layer:
+- config
+- controllers
+- middleware
+- models
+- routes
+- templates
+- main.go
+
+Tujuan dokumen:
+- Mengidentifikasi fitur yang benar-benar ada di project
+- Memetakan fitur ke PBI KF-xx
+- Mengelompokkan fitur ke Sprint 1 dan Sprint 2
+- Menentukan PIC dan ownership file per anggota
+- Merencanakan penandaan komentar Author, PBI, dan Sprint di dalam kode
+
+Catatan:
+- Mapping dilakukan berdasarkan fitur yang paling relevan
+- Beberapa nomor PBI dipakai ulang dengan nama berbeda, sehingga interpretasi dilakukan dari konteks implementasi
+- Sebagian fitur sudah full-stack, sebagian lain masih berupa UI atau model
+
+==================================================
+1. STRUKTUR PROJECT
+==================================================
+
+1. Entry Point
+- main.go
+  - Inisialisasi database
+  - Auto migrate model
+  - Seed admin
+  - Registrasi static files
+  - Load HTML templates
+  - Menjalankan route
+
+2. Config
+- config/db.go
+  - Koneksi MySQL
+  - Membuat database marilancy jika belum ada
+- config/jwt.go
+  - Menyimpan JWT secret
+- config/seeder.go
+  - Seeder akun admin default
+
+3. Controllers
+- controllers/auth.go
+  - Register
+  - Login
+- controllers/freelancer.go
+  - Profil freelancer
+  - Update profil freelancer
+  - Riwayat lamaran freelancer
+- controllers/client.go
+  - Profil client
+  - Update profil client
+  - Fungsi seleksi pelamar tambahan
+- controllers/job.go
+  - Create job
+  - List job
+  - Detail job
+  - Edit job
+  - Soft delete job
+- controllers/application.go
+  - Apply job
+  - Withdraw lamaran
+  - Lihat pelamar
+  - Update status lamaran
+- controllers/admin.go
+  - Dashboard admin
+  - Kelola freelancer
+  - Kelola client
+  - Kelola job
+
+4. Middleware
+- middleware/auth.go
+  - JWT auth middleware
+  - Role middleware
+
+5. Models
+- models/freelancer.go
+- models/client.go
+- models/admin.go
+- models/job.go
+- models/application.go
+- models/rating.go
+
+6. Routes
+- routes/routes.go
+  - Public routes
+  - Client routes
+  - Freelancer routes
+  - Admin routes
+
+7. Views / Templates
+- templates/login.html
+- templates/register.html
+- templates/dashboard_client.html
+- templates/dashboard_freelancer.html
+- templates/dashboard_admin.html
+- templates/profile.html
+- templates/profilefree.html
+- templates/job_detail.html
+- templates/pendaftar.html
+- templates/notification.html
+
+==================================================
+2. DAFTAR FITUR YANG ADA DI PROJECT
+==================================================
+
+1. Fitur Autentikasi dan Otorisasi
+- Register multi-role: freelancer, client, admin
+- Login multi-role
+- Redirect berdasarkan role
+- Proteksi endpoint menggunakan JWT
+- Validasi akses berdasarkan role
+
+Kode utama:
+- controllers/auth.go
+- middleware/auth.go
+- routes/routes.go
+- templates/login.html
+- templates/register.html
+
+2. Fitur Profil Client
+- Melihat profil client
+- Update profil client
+- Field profil perusahaan: lokasi, jenis usaha, jumlah pegawai, deskripsi, kultur perusahaan, kontak, galeri
+
+Kode utama:
+- controllers/client.go
+- models/client.go
+- templates/profile.html
+
+3. Fitur Profil Freelancer
+- Melihat profil freelancer
+- Update profil freelancer
+- Upload resume
+- Upload certificates
+- Upload attachments
+- Menyimpan skill, bio, pengalaman, pendidikan, salary expectation, work preference
+
+Kode utama:
+- controllers/freelancer.go
+- models/freelancer.go
+- templates/profilefree.html
+
+4. Fitur Dashboard
+- Dashboard client
+- Dashboard freelancer
+- Dashboard admin
+
+Kode utama:
+- main.go
+- templates/dashboard_client.html
+- templates/dashboard_freelancer.html
+- templates/dashboard_admin.html
+
+5. Fitur Manajemen Job / Proyek
+- Client membuat job
+- Menampilkan list job
+- Menampilkan detail job
+- Client edit job
+- Client soft delete job
+- Menutup job melalui perubahan status
+
+Kode utama:
+- controllers/job.go
+- models/job.go
+- templates/dashboard_client.html
+- templates/job_detail.html
+- routes/routes.go
+
+6. Fitur Pencarian / Penelusuran Proyek
+- Freelancer dapat melihat daftar project/job
+- Freelancer dapat membuka preview/detail project
+- Freelancer dapat menelusuri project yang aktif
+
+Kode utama:
+- controllers/job.go
+- templates/dashboard_freelancer.html
+- templates/job_detail.html
+
+Catatan:
+- Belum ada endpoint pencarian berbasis query/filter backend
+- Saat ini lebih tepat disebut browse/list project
+
+7. Fitur Lamaran / Bidding
+- Freelancer apply job
+- Validasi resume dan certificate sebelum apply
+- Freelancer withdraw lamaran
+- Freelancer melihat riwayat/status lamaran
+
+Kode utama:
+- controllers/application.go
+- controllers/freelancer.go
+- models/application.go
+- templates/dashboard_freelancer.html
+- templates/profilefree.html
+
+Catatan:
+- Tidak ada nominal penawaran atau proposal harga
+- Implementasi lebih cocok ke lamaran daripada bidding murni
+
+8. Fitur Pelamar
+- Client melihat daftar pelamar per job
+- Client melihat data freelancer pelamar
+- Client mengubah status menjadi pending, accepted, rejected
+
+Kode utama:
+- controllers/application.go
+- templates/pendaftar.html
+- models/application.go
+
+9. Fitur Status Lamaran
+- Freelancer melihat status lamaran
+- Freelancer mendapat status accepted/rejected
+- Freelancer dapat melihat efek job ditutup/dihapus terhadap lamaran
+
+Kode utama:
+- controllers/freelancer.go
+- templates/profilefree.html
+
+10. Fitur Notifikasi
+- Freelancer melihat notifikasi dari perubahan status lamaran
+- Badge notifikasi di dashboard freelancer
+
+Kode utama:
+- templates/notification.html
+- templates/dashboard_freelancer.html
+- controllers/freelancer.go
+
+Catatan:
+- Belum ada tabel notifikasi khusus
+- Notifikasi dibentuk dari data application
+
+11. Fitur Monitoring dan Administrasi Sistem
+- Dashboard admin menampilkan total freelancer, client, dan job
+- Admin melihat semua freelancer
+- Admin melihat semua client
+- Admin menghapus freelancer
+- Admin menghapus client
+- Admin melihat semua job
+- Admin menghapus job
+
+Kode utama:
+- controllers/admin.go
+- templates/dashboard_admin.html
+- routes/routes.go
+
+12. Fitur Rating
+- Baru tersedia model Rating
+
+Kode utama:
+- models/rating.go
+
+Catatan:
+- Belum ada controller, route, atau UI rating
+
+==================================================
+3. MAPPING FITUR KE PBI
+==================================================
+
+1. Admin melihat dan menghapus data user
+- PBI: KF-17
+- Nama PBI: Kelola Data pengguna
+- Sprint: Sprint 1
+- PIC: Arga
+
+2. Client dan freelancer mengelola profil
+- PBI: KF-02
+- Nama PBI: Kelola Profil
+- Sprint: Sprint 1
+- PIC: Fadhil
+
+3. Dashboard client, freelancer, admin
+- PBI: KF-13
+- Nama PBI: Melihat dashboard
+- Sprint: Sprint 1
+- PIC: Hanif
+
+4. Client membuat job/proyek
+- PBI: KF-03
+- Nama PBI: Membuat proyek
+- Sprint: Sprint 1
+- PIC: Aura
+
+5. Client melihat pelamar
+- PBI: KF-06
+- Nama PBI: Melihat pelamar
+- Sprint: Sprint 1
+- PIC: Danu
+
+6. Freelancer melihat status lamaran
+- PBI: KF-09
+- Nama PBI: Melihat status lamaran
+- Sprint: Sprint 1
+- PIC: Rania
+
+7. Client edit dan delete job
+- PBI: KF-03
+- Nama PBI: Kelola Data Proyek
+- Sprint: Sprint 1
+- PIC: Arga
+
+8. Freelancer melihat daftar project
+- PBI: KF-04
+- Nama PBI: Mencari proyek
+- Sprint: Sprint 1
+- PIC: Fadhil
+
+9. Client mengelola lifecycle job
+- PBI: KF-03
+- Nama PBI: Mengelola proyek
+- Sprint: Sprint 1
+- PIC: Danu
+
+10. Detail job/project
+- PBI: KF-11
+- Nama PBI: Melihat detail proyek
+- Sprint: Sprint 1
+- PIC: Aura
+
+11. Progres status lamaran dan job
+- PBI: KF-08
+- Nama PBI: Memantau progres
+- Sprint: Sprint 1
+- PIC: Rania
+
+12. Apply job dari sisi freelancer
+- PBI: KF-05
+- Nama PBI: Mengajukan bidding
+- Sprint: Sprint 1
+- PIC: Arga
+
+13. Apply job dari sisi freelancer
+- PBI: KF-05
+- Nama PBI: Mengajukan lamaran
+- Sprint: Sprint 1
+- PIC: Fadhil
+
+14. Seleksi pelamar
+- PBI: KF-07
+- Nama PBI: Menyeleksi pelamar
+- Sprint: Sprint 1
+- PIC: Aura
+
+15. Freelancer mengakses notifikasi
+- PBI: KF-14 / KF-16
+- Nama PBI: Mengakses pesan / Notifikasi sistem
+- Sprint: Sprint 2
+- PIC: Rania / Danu
+
+16. Admin dashboard monitoring
+- PBI: KF-17
+- Nama PBI: Monitoring sistem
+- Sprint: Sprint 2
+- PIC: Arga
+
+17. Rating
+- PBI: KF-15
+- Nama PBI: Memberikan rating
+- Sprint: Sprint 2
+- PIC: Aura
+
+18. Riwayat aplikasi freelancer
+- PBI: KF-10
+- Nama PBI: Melihat riwayat proyek
+- Sprint: Sprint 2
+- PIC: Danu
+
+==================================================
+4. PBI YANG BELUM ATAU BARU SEBAGIAN TERIMPLEMENTASI
+==================================================
+
+Belum ditemukan implementasinya:
+- KF-12 Simulasi transaksi
+- KF-14 Mengakses pesan jika dimaknai sebagai messaging/chat
+- KF-08 Mengelola to-do list
+- KF-18 Mengajukan penyelesaian proyek
+- KF-18 Konfirmasi penyelesaian
+- KF-17 Menangani keluhan
+
+Baru sebagian:
+- KF-15 Memberikan rating
+  - Baru model
+  - Belum ada logic
+- KF-10 Melihat riwayat proyek
+  - Yang ada baru riwayat lamaran
+- KF-16 Notifikasi sistem
+  - Sudah ada UI notifikasi berbasis status application
+  - Belum ada modul notifikasi khusus
+- KF-05 Mengajukan bidding
+  - Yang ada apply/lamaran
+  - Belum ada penawaran nominal atau proposal bidding
+
+==================================================
+5. PENGELOMPOKAN KE SPRINT 1 DAN SPRINT 2
+==================================================
+
+Sprint 1
+
+Arga:
+- KF-17 Kelola Data pengguna
+- KF-03 Kelola Data Proyek
+- KF-05 Mengajukan bidding
+
+Fadhil:
+- KF-02 Kelola Profil
+- KF-04 Mencari proyek
+- KF-05 Mengajukan lamaran
+
+Hanif:
+- KF-13 Melihat dashboard
+
+Aura:
+- KF-03 Membuat proyek
+- KF-11 Melihat detail proyek
+- KF-07 Menyeleksi pelamar
+
+Danu:
+- KF-06 Melihat pelamar
+- KF-03 Mengelola proyek
+
+Rania:
+- KF-09 Melihat status lamaran
+- KF-08 Memantau progres
+
+Sprint 2
+
+Arga:
+- KF-17 Monitoring sistem
+
+Fadhil:
+- KF-12 Simulasi transaksi
+
+Hanif:
+- KF-18 Mengajukan penyelesaian proyek
+- KF-18 Konfirmasi penyelesaian
+- KF-17 Menangani keluhan
+
+Aura:
+- KF-15 Memberikan rating
+
+Danu:
+- KF-10 Melihat riwayat proyek
+- KF-16 Notifikasi sistem
+
+Rania:
+- KF-14 Mengakses pesan
+- KF-08 Mengelola to-do list
+
+==================================================
+6. REKOMENDASI PEMBAGIAN KERJA PER ANGGOTA
+==================================================
+
+Arga
+Fokus:
+- Area admin
+- Area monitoring
+- Area koneksi sistem
+- Sebagian manajemen proyek
+
+File ownership utama:
+- controllers/admin.go
+- config/db.go
+- config/seeder.go
+- area admin group di routes/routes.go
+
+File ownership tambahan:
+- controllers/job.go untuk bagian delete/update yang dipetakan ke kelola data proyek
+
+Fadhil
+Fokus:
+- Profil
+- Auth
+- Browse project
+- Apply dari sisi proses user
+
+File ownership utama:
+- controllers/auth.go
+- controllers/client.go
+- templates/login.html
+- templates/register.html
+- templates/profile.html
+
+File ownership tambahan:
+- controllers/freelancer.go untuk area profil freelancer
+- controllers/job.go untuk area listing/browse job
+
+Hanif
+Fokus:
+- Dashboard
+- Integrasi page flow
+- Fitur Sprint 2 yang bersifat orchestration
+
+File ownership utama:
+- main.go
+- templates/dashboard_freelancer.html
+- templates/dashboard_admin.html
+
+File ownership tambahan:
+- routes/routes.go untuk integrasi dashboard entry page
+
+Aura
+Fokus:
+- Create job
+- Detail project
+- Seleksi pelamar
+- Rating
+
+File ownership utama:
+- controllers/job.go
+- models/job.go
+- models/rating.go
+- templates/job_detail.html
+- section create project pada templates/dashboard_client.html
+
+File ownership tambahan:
+- controllers/application.go untuk status selection terkait pelamar
+
+Danu
+Fokus:
+- Daftar pelamar
+- Lifecycle project
+- History dan notifikasi
+
+File ownership utama:
+- controllers/application.go
+- templates/pendaftar.html
+- templates/notification.html
+
+File ownership tambahan:
+- controllers/job.go untuk area pengelolaan status job
+
+Rania
+Fokus:
+- Status lamaran
+- Riwayat lamaran
+- Monitoring progres freelancer
+- Notifikasi dari sudut pandang user freelancer
+
+File ownership utama:
+- controllers/freelancer.go
+- models/application.go
+- templates/profilefree.html
+- area notification badge pada templates/dashboard_freelancer.html
+
+==================================================
+7. RENCANA PENANDAAN NAMA DI DALAM KODE
+==================================================
+
+Format komentar Go:
+
+// Author: [Nama]
+// PBI: KF-xx
+// Sprint: Sprint 1
+
+Format komentar HTML:
+
+<!-- Author: [Nama] -->
+<!-- PBI: KF-xx -->
+<!-- Sprint: Sprint 1 -->
+
+Aturan penempatan:
+- Diletakkan di atas func, type struct, route registration, atau blok script utama
+- Tidak perlu di setiap baris
+- Jika satu file berisi banyak fitur, gunakan beberapa blok komentar sesuai fungsi
+- Jika satu fungsi dipakai lintas PBI, pilih PBI yang paling dominan
+
+==================================================
+8. CONTOH IMPLEMENTASI PENANDAAN
+==================================================
+
+Contoh pada Controller:
+
+// Author: Aura
+// PBI: KF-03
+// Sprint: Sprint 1
+func CreateJob(c *gin.Context) {
+    // ...
+}
+
+Contoh pada Config:
+
+// Author: Arga
+// PBI: KF-17
+// Sprint: Sprint 2
+func ConnectDB() {
+    // ...
+}
+
+Contoh pada Route:
+
+// Author: Danu
+// PBI: KF-06
+// Sprint: Sprint 1
+client.GET("/jobs/:id/applicants", controllers.GetJobApplicants)
+
+Contoh pada Middleware:
+
+// Author: Fadhil
+// PBI: KF-02
+// Sprint: Sprint 1
+func AuthMiddleware() gin.HandlerFunc {
+    // ...
+}
+
+Contoh pada Model:
+
+// Author: Aura
+// PBI: KF-03
+// Sprint: Sprint 1
+type Job struct {
+    ID    uint
+    Judul string
+}
+
+Contoh pada View:
+
+<!-- Author: Rania -->
+<!-- PBI: KF-09 -->
+<!-- Sprint: Sprint 1 -->
+<script>
+async function loadApplications() {
+  // ...
+}
+</script>
+
+==================================================
+9. KESIMPULAN
+==================================================
+
+Fitur yang paling matang di project ini:
+- Auth
+- Profil client dan freelancer
+- Dashboard
+- Job/project management
+- Apply lamaran
+- Melihat dan menyeleksi pelamar
+- Monitoring admin
+
+Fitur yang belum matang atau belum ada:
+- Rating
+- Transaksi
+- Messaging
+- To-do list
+- Penyelesaian proyek
+- Keluhan
+
+Jika ingin mensimulasikan project ini seolah dikerjakan tim berdasarkan Sprint dan Jira PBI, pembagian yang paling masuk akal adalah berdasarkan domain ownership seperti di atas, lalu penandaan Author/PBI/Sprint ditempatkan pada fungsi, route, model, dan blok view utama.

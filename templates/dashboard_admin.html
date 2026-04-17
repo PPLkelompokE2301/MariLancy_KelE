@@ -1,0 +1,121 @@
+<!-- Author: Hanif -->
+<!-- PBI: KF-13 -->
+<!-- Sprint: Sprint 1 -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin Dashboard - MariLancy</title>
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+<main class="page-shell">
+  <!-- Author: Hanif -->
+  <!-- PBI: KF-13 -->
+  <!-- Sprint: Sprint 1 -->
+  <section class="page-hero">
+    <p class="eyebrow">KF-17 • KF-13</p>
+    <h1>Admin Dashboard</h1>
+    <p>Melihat ringkasan user dan menghapus data client atau freelancer.</p>
+  </section>
+
+  <!-- Author: Arga -->
+  <!-- PBI: KF-17 -->
+  <!-- Sprint: Sprint 1 -->
+  <section class="stats-grid">
+    <article class="card">
+      <h2>Total Admin</h2>
+      <strong id="totalAdmins">0</strong>
+    </article>
+    <article class="card">
+      <h2>Total Freelancer</h2>
+      <strong id="totalFreelancers">0</strong>
+    </article>
+    <article class="card">
+      <h2>Total Client</h2>
+      <strong id="totalClients">0</strong>
+    </article>
+  </section>
+
+  <!-- Author: Arga -->
+  <!-- PBI: KF-17 -->
+  <!-- Sprint: Sprint 1 -->
+  <section class="split-grid">
+    <article class="card">
+      <div class="section-head">
+        <h2>Data Freelancer</h2>
+        <button onclick="loadFreelancers()">Refresh</button>
+      </div>
+      <div id="freelancerList" class="list-stack"></div>
+    </article>
+
+    <article class="card">
+      <div class="section-head">
+        <h2>Data Client</h2>
+        <button onclick="loadClients()">Refresh</button>
+      </div>
+      <div id="clientList" class="list-stack"></div>
+    </article>
+  </section>
+</main>
+
+<!-- Author: Arga -->
+<!-- PBI: KF-17 -->
+<!-- Sprint: Sprint 1 -->
+<script>
+async function fetchJSON(url, options = {}) {
+  const response = await fetch(url, options)
+  return response.json()
+}
+
+async function loadDashboard() {
+  const data = await fetchJSON("/admin/data")
+  document.getElementById("totalAdmins").innerText = data.admins || 0
+  document.getElementById("totalFreelancers").innerText = data.freelancers || 0
+  document.getElementById("totalClients").innerText = data.clients || 0
+}
+
+function renderUserList(containerId, rows, deleteBasePath, labelKey) {
+  const container = document.getElementById(containerId)
+  if (!rows.length) {
+    container.innerHTML = "<p class='empty-state'>Belum ada data.</p>"
+    return
+  }
+
+  container.innerHTML = rows.map((row) => `
+    <div class="list-item">
+      <div>
+        <strong>${row[labelKey] || "-"}</strong>
+        <p>${row.email || "-"}</p>
+      </div>
+      <button class="danger" onclick="deleteUser('${deleteBasePath}', ${row.ID})">Hapus</button>
+    </div>
+  `).join("")
+}
+
+async function loadFreelancers() {
+  const data = await fetchJSON("/admin/freelancers")
+  renderUserList("freelancerList", data.data || [], "/admin/freelancers", "nama")
+}
+
+async function loadClients() {
+  const data = await fetchJSON("/admin/clients")
+  renderUserList("clientList", data.data || [], "/admin/clients", "nama_client")
+}
+
+async function deleteUser(path, id) {
+  await fetch(`${path}/${id}`, { method: "DELETE" })
+  await loadDashboard()
+  if (path.includes("freelancers")) {
+    await loadFreelancers()
+    return
+  }
+  await loadClients()
+}
+
+loadDashboard()
+loadFreelancers()
+loadClients()
+</script>
+</body>
+</html>

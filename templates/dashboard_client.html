@@ -1,0 +1,71 @@
+<!-- Author: Hanif -->
+<!-- PBI: KF-13 -->
+<!-- Sprint: Sprint 1 -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Client Dashboard - MariLancy</title>
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+<main class="page-shell">
+  <!-- Author: Hanif -->
+  <!-- PBI: KF-13 -->
+  <!-- Sprint: Sprint 1 -->
+  <section class="page-hero">
+    <p class="eyebrow">KF-13</p>
+    <h1>Dashboard Client</h1>
+    <p>Halaman ringkas client untuk melihat identitas profil yang aktif dan menuju halaman kelola profil.</p>
+  </section>
+
+  <!-- Author: Hanif -->
+  <!-- PBI: KF-13 -->
+  <!-- Sprint: Sprint 1 -->
+  <section class="card">
+    <div class="section-head">
+      <div>
+        <h2>Ringkasan Profil</h2>
+        <p id="clientSubtitle">Memuat data client...</p>
+      </div>
+      <a class="button-link" href="/client/profile/view">Kelola Profil</a>
+    </div>
+
+    <div class="stats-grid compact">
+      <article class="stat-box">
+        <span>Nama Client</span>
+        <strong id="clientName">-</strong>
+      </article>
+      <article class="stat-box">
+        <span>Lokasi</span>
+        <strong id="clientLocation">-</strong>
+      </article>
+      <article class="stat-box">
+        <span>Jenis Usaha</span>
+        <strong id="clientBusiness">-</strong>
+      </article>
+      <article class="stat-box">
+        <span>Kontak</span>
+        <strong id="clientContact">-</strong>
+      </article>
+    </div>
+  </section>
+</main>
+
+<!-- Author: Hanif -->
+<!-- PBI: KF-13 -->
+<!-- Sprint: Sprint 1 -->
+<script>
+async function loadClientSummary() {
+  const data = await fetch("/client/profile").then((response) => response.json())
+  document.getElementById("clientName").innerText = data.nama_client || "-"
+  document.getElementById("clientLocation").innerText = data.lokasi || "-"
+  document.getElementById("clientBusiness").innerText = data.jenis_usaha || "-"
+  document.getElementById("clientContact").innerText = data.kontak || "-"
+  document.getElementById("clientSubtitle").innerText = data.email || "Belum ada email tersimpan"
+}
+
+loadClientSummary()
+</script>
+</body>
+</html>

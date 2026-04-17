@@ -1,0 +1,137 @@
+<!-- Author: Fadhil -->
+<!-- PBI: KF-02 -->
+<!-- Sprint: Sprint 1 -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Freelancer Profile - MariLancy</title>
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+<main class="page-shell narrow">
+  <!-- Author: Fadhil -->
+  <!-- PBI: KF-02 -->
+  <!-- Sprint: Sprint 1 -->
+  <section class="page-hero">
+    <p class="eyebrow">KF-02</p>
+    <h1>Kelola Profil Freelancer</h1>
+    <p>Form dasar untuk melihat dan memperbarui profil freelancer, termasuk file pendukung.</p>
+  </section>
+
+  <!-- Author: Fadhil -->
+  <!-- PBI: KF-02 -->
+  <!-- Sprint: Sprint 1 -->
+  <section class="card">
+    <div class="section-head">
+      <h2>Data Freelancer</h2>
+      <a class="button-link" href="/freelancer">Kembali ke Dashboard</a>
+    </div>
+
+    <form id="freelancerForm" class="form-grid" enctype="multipart/form-data">
+      <input id="nama" placeholder="Nama">
+      <input id="email" placeholder="Email" disabled>
+      <input id="gender" placeholder="Gender">
+      <input id="age" type="number" placeholder="Umur">
+      <input id="location" placeholder="Lokasi">
+      <input id="education_level" placeholder="Pendidikan">
+      <input id="years_of_experience" type="number" placeholder="Pengalaman Kerja">
+      <input id="monthly_salary_exp" placeholder="Ekspektasi Gaji">
+      <input id="job_interest" placeholder="Minat Kerja">
+      <input id="work_pre" placeholder="Preferensi Kerja">
+      <textarea id="bio" class="full" placeholder="Bio"></textarea>
+      <input id="skillInput" class="full" placeholder="Skill, pisahkan dengan koma">
+      <label class="upload-field">Resume<input type="file" id="resume"></label>
+      <label class="upload-field">Certificates<input type="file" id="certificates"></label>
+      <label class="upload-field full">Attachments<input type="file" id="attachments"></label>
+    </form>
+
+    <div class="file-preview">
+      <a id="resumePreview" target="_blank"></a>
+      <a id="certPreview" target="_blank"></a>
+      <a id="attachPreview" target="_blank"></a>
+    </div>
+
+    <div class="actions-row">
+      <button onclick="updateProfile()">Simpan Profil</button>
+      <button class="secondary" onclick="loadProfile()">Muat Ulang</button>
+    </div>
+  </section>
+</main>
+
+<!-- Author: Fadhil -->
+<!-- PBI: KF-02 -->
+<!-- Sprint: Sprint 1 -->
+<script>
+async function loadProfile() {
+  const data = await fetch("/freelancer/profile").then((response) => response.json())
+  document.getElementById("nama").value = data.nama || ""
+  document.getElementById("email").value = data.email || ""
+  document.getElementById("gender").value = data.gender || ""
+  document.getElementById("age").value = data.age || ""
+  document.getElementById("location").value = data.location || ""
+  document.getElementById("education_level").value = data.education_level || ""
+  document.getElementById("years_of_experience").value = data.years_of_experience || ""
+  document.getElementById("monthly_salary_exp").value = data.monthly_salary_exp || ""
+  document.getElementById("job_interest").value = data.job_interest || ""
+  document.getElementById("bio").value = data.bio || ""
+  document.getElementById("skillInput").value = data.skill || ""
+  document.getElementById("work_pre").value = data.work_pre || ""
+  updatePreview("resumePreview", data.resume, "Lihat Resume")
+  updatePreview("certPreview", data.certificates, "Lihat Certificate")
+  updatePreview("attachPreview", data.attachments, "Lihat Attachment")
+}
+
+async function updateProfile() {
+  const formData = new FormData()
+  formData.append("nama", document.getElementById("nama").value)
+  formData.append("gender", document.getElementById("gender").value)
+  formData.append("age", document.getElementById("age").value)
+  formData.append("location", document.getElementById("location").value)
+  formData.append("education_level", document.getElementById("education_level").value)
+  formData.append("years_of_experience", document.getElementById("years_of_experience").value)
+  formData.append("monthly_salary_exp", document.getElementById("monthly_salary_exp").value)
+  formData.append("job_interest", document.getElementById("job_interest").value)
+  formData.append("bio", document.getElementById("bio").value)
+  formData.append("skill", document.getElementById("skillInput").value)
+  formData.append("work_pre", document.getElementById("work_pre").value)
+
+  const resumeFile = document.getElementById("resume").files[0]
+  const certificateFile = document.getElementById("certificates").files[0]
+  const attachmentFile = document.getElementById("attachments").files[0]
+
+  if (resumeFile) {
+    formData.append("resume", resumeFile)
+  }
+  if (certificateFile) {
+    formData.append("certificates", certificateFile)
+  }
+  if (attachmentFile) {
+    formData.append("attachments", attachmentFile)
+  }
+
+  const response = await fetch("/freelancer/profile", {
+    method: "PUT",
+    body: formData,
+  })
+
+  const result = await response.json()
+  alert(result.msg || result.error || "Profile updated")
+  loadProfile()
+}
+
+function updatePreview(elementID, href, label) {
+  const link = document.getElementById(elementID)
+  if (!href) {
+    link.removeAttribute("href")
+    link.innerText = ""
+    return
+  }
+  link.href = href
+  link.innerText = label
+}
+
+loadProfile()
+</script>
+</body>
+</html>
