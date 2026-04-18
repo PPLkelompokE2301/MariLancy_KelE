@@ -109,6 +109,10 @@ func GetJobDetail(c *gin.Context) {
 	c.JSON(200, job)
 }
 
+// Author: Danu
+// PBI: KF-03 - Mengelola Proyek
+// Sprint: Sprint 1
+
 func DeleteJob(c *gin.Context) {
 	id := c.Param("id")
 
@@ -138,10 +142,6 @@ func DeleteJob(c *gin.Context) {
 
 	c.JSON(200, gin.H{"message": "Job dihapus (soft delete)"})
 }
-
-// Author: Danu
-// PBI: KF-03 - Mengelola Proyek
-// Sprint: Sprint 1
 
 func UpdateJob(c *gin.Context) {
 	id := c.Param("id")
