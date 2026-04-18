@@ -1,5 +1,6 @@
 // Author: Aura
 // PBI: KF-03
+// PBI: KF-11
 // Sprint: Sprint 1
 package controllers
 
@@ -7,9 +8,34 @@ import (
 	"encoding/json"
 	"marilancy/config"
 	"marilancy/models"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
+
+func getUserID(c *gin.Context) (uint, bool) {
+	val, exists := c.Get("user_id")
+	if !exists {
+		return 0, false
+	}
+
+	switch v := val.(type) {
+	case float64:
+		return uint(v), true
+	case int:
+		return uint(v), true
+	case uint:
+		return v, true
+	case string:
+		i, err := strconv.Atoi(v)
+		if err != nil {
+			return 0, false
+		}
+		return uint(i), true
+	default:
+		return 0, false
+	}
+}
 
 func CreateJob(c *gin.Context) {
 	var job models.Job
@@ -66,4 +92,16 @@ func CreateJob(c *gin.Context) {
 	}
 
 	c.JSON(200, gin.H{"message": "Job created"})
+}
+
+func GetJobDetail(c *gin.Context) {
+	id := c.Param("id")
+
+	var job models.Job
+	if err := config.DB.Preload("Client").First(&job, id).Error; err != nil {
+		c.JSON(404, gin.H{"error": "Job tidak ditemukan"})
+		return
+	}
+
+	c.JSON(200, job)
 }
