@@ -1,6 +1,5 @@
 // Author: Aura
 // PBI: KF-03
-// PBI: KF-11
 // Sprint: Sprint 1
 package controllers
 
@@ -93,6 +92,10 @@ func CreateJob(c *gin.Context) {
 
 	c.JSON(200, gin.H{"message": "Job created"})
 }
+
+// Author: Aura
+// PBI: KF-11
+// Sprint: Sprint 1
 
 func GetJobDetail(c *gin.Context) {
 	id := c.Param("id")
