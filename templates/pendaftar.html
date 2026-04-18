@@ -1,0 +1,145 @@
+<!-- Author: Danu -->
+<!-- PBI: KF-06 -->
+<!-- Sprint: Sprint 1 -->
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Pendaftar Job</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body class="bg-gray-100">
+
+<div class="max-w-5xl mx-auto mt-10">
+
+  <h1 class="text-2xl font-bold mb-5">📄 Daftar Pendaftar</h1>
+
+  <div id="applicantList" class="space-y-4"></div>
+
+</div>
+
+<script>
+
+const token = localStorage.getItem("token")
+
+if (!token) {
+  alert("Token kosong, login ulang")
+  window.location.href = "/"
+}
+
+
+const params = new URLSearchParams(window.location.search)
+const jobId = params.get("id") 
+
+console.log("JOB ID:", jobId)
+
+console.log("📌 JOB ID:", jobId)
+
+if (!jobId) {
+  alert("Job ID tidak ditemukan di URL")
+  throw new Error("Missing jobId")
+}
+
+async function loadApplicants() {
+
+  const url = `/client/jobs/${jobId}/applicants`
+
+  console.log("🌐 FETCH:", url)
+
+  const res = await fetch(url, {
+    method: "GET",
+    headers: {
+      "Authorization": `Bearer ${token}`
+    }
+  })
+
+  console.log("📡 STATUS:", res.status)
+
+  const text = await res.text()
+  console.log("📩 RAW RESPONSE:", text)
+
+  if (res.status === 401) {
+    alert("Unauthorized (JWT salah / expired)")
+    return
+  }
+
+  let data
+  try {
+    data = JSON.parse(text)
+  } catch (e) {
+    console.error("❌ JSON PARSE ERROR")
+    return
+  }
+
+  console.log("✅ DATA:", data)
+
+  let html = ""
+
+  data.forEach(app => {
+
+    const f = app.freelancer || {}
+
+    html += `
+      <div class="bg-white p-5 rounded shadow">
+
+        <h2 class="text-lg font-bold">${f.nama || "Unknown Freelancer"}</h2>
+
+        <p class="text-sm text-gray-600">📧 ${f.email || "-"}</p>
+        <p class="text-sm">📍 ${f.location || "-"}</p>
+        <p class="text-sm">🎓 ${f.education_level || "-"}</p>
+        <p class="text-sm">💼 Experience: ${f.years_of_experience || 0} tahun</p>
+
+      
+        <div class="mt-2 text-sm">
+          ${f.resume ? `<a href="${f.resume}" target="_blank" class="text-blue-500">📄 Resume</a><br>` : ""}
+          ${f.certificates ? `<a href="${f.certificates}" target="_blank" class="text-blue-500">📜 Certificate</a><br>` : ""}
+          ${f.attachments ? `<a href="${f.attachments}" target="_blank" class="text-blue-500">📎 Attachment</a>` : ""}
+        </div>
+
+      
+        <div class="mt-3">
+          <label>Status:</label>
+          <select onchange="updateStatus(${app.id}, this.value)"
+            class="border p-1 rounded ml-2">
+
+            <option value="pending" ${app.status === "pending" ? "selected" : ""}>Pending</option>
+            <option value="accepted" ${app.status === "accepted" ? "selected" : ""}>Diterima</option>
+            <option value="rejected" ${app.status === "rejected" ? "selected" : ""}>Ditolak</option>
+
+          </select>
+        </div>
+
+      </div>
+    `
+  })
+
+  document.getElementById("applicantList").innerHTML = html
+}
+
+async function updateStatus(appId, status) {
+
+  const res = await fetch("/client/application/status", {
+    method: "PUT",
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      application_id: appId,
+      status: status
+    })
+  })
+
+  const text = await res.text()
+  console.log("UPDATE RESPONSE:", text)
+}
+
+loadApplicants()
+
+</script>
+
+</body>
+</html>
