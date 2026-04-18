@@ -1,0 +1,140 @@
+<!-- Author: Aura -->
+<!-- PBI: KF-03 -->
+<!-- Sprint: Sprint 1 -->
+<link rel="stylesheet" href="/static/css/style.css?v=<?= timestamp ?>" />
+
+<section class="section-padding" id="dashboard">
+  <div class="card-form">
+    <h2>Post Job</h2>
+
+    <div class="form-grid">
+      <input id="judul" placeholder="Judul Pekerjaan" />
+
+      <select id="kategori">
+        <option value="">Pilih Kategori</option>
+        <option>Management</option>
+        <option>Finance</option>
+        <option>Photography</option>
+        <option>IT</option>
+        <option>Design</option>
+        <option>Researcher</option>
+        <option>Marketing</option>
+        <option>Analyst</option>
+        <option>Content Creator</option>
+      </select>
+
+      <textarea id="job_desc" placeholder="Deskripsi Pekerjaan"></textarea>
+
+      <input id="kebutuhan_proyek" placeholder="Kebutuhan Proyek" />
+      <input id="kebutuhan_skill" placeholder="Kebutuhan Skill" />
+
+      <select id="status">
+        <option value="">Pilih Status Lowongan</option>
+        <option value="dibuka">Dibuka</option>
+        <option value="ditutup">Ditutup</option>
+      </select>
+
+      <select id="budget">
+        <option value="">Pilih Budget</option>
+        <option value="100000-300000">100000 - 300000</option>
+        <option value="300000-500000">300000 - 500000</option>
+        <option value="500000-700000">500000 - 700000</option>
+        <option value="700000-1000000">700000 - 1000000</option>
+        <option value="1000000">1000000+</option>
+      </select>
+
+      <select id="level">
+        <option value="">Pilih Level</option>
+        <option>Entry</option>
+        <option>Junior</option>
+        <option>Midlevel</option>
+        <option>Senior</option>
+      </select>
+
+      <select id="tipe">
+        <option value="">Pilih Tipe</option>
+        <option>Hybrid</option>
+        <option>Remote</option>
+        <option>On-site</option>
+      </select>
+
+      <input id="lokasi_pelaksanaan" placeholder="Lokasi" />
+
+      <div>
+        <label><input type="checkbox" value="Design" class="tags" /> Design</label>
+        <label><input type="checkbox" value="Analytic" class="tags" /> Analytic</label>
+        <label><input type="checkbox" value="Communication" class="tags" /> Communication</label>
+        <label><input type="checkbox" value="Computer" class="tags" /> Computer</label>
+        <label><input type="checkbox" value="Business" class="tags" /> Business</label>
+        <label><input type="checkbox" value="Research" class="tags" /> Research</label>
+        <label><input type="checkbox" value="Finance" class="tags" /> Finance</label>
+        <label><input type="checkbox" value="Marketing" class="tags" /> Marketing</label>
+      </div>
+
+      <input id="share_job" placeholder="Share Job" />
+
+      <select id="batas_pendidikan">
+        <option value="">Pilih Pendidikan</option>
+        <option>SMA/SMK</option>
+        <option>D1</option>
+        <option>D2</option>
+        <option>D3</option>
+        <option>D4</option>
+        <option>S1</option>
+        <option>S2</option>
+        <option>S3</option>
+      </select>
+
+      <select id="pengalaman_kerja">
+        <option value="">Pilih Pengalaman</option>
+        <option>1 Tahun</option>
+        <option>2 Tahun</option>
+        <option>3 Tahun</option>
+        <option>4 Tahun</option>
+        <option>5+ Tahun</option>
+      </select>
+    </div>
+
+    <br />
+    <button onclick="createJob()">Post Job</button>
+  </div>
+</section>
+
+<script>
+  async function createJob() {
+    const selectedTags = Array.from(document.querySelectorAll(".tags:checked")).map((el) => el.value);
+
+    const data = {
+      judul: document.getElementById("judul").value,
+      job_desc: document.getElementById("job_desc").value,
+      kebutuhan_proyek: document.getElementById("kebutuhan_proyek").value,
+      kebutuhan_skill: document.getElementById("kebutuhan_skill").value,
+      status: document.getElementById("status").value,
+      kategori: document.getElementById("kategori").value,
+      budget: document.getElementById("budget").value,
+      batas_pendidikan: document.getElementById("batas_pendidikan").value,
+      pengalaman_kerja: document.getElementById("pengalaman_kerja").value,
+      tipe: document.getElementById("tipe").value,
+      lokasi_pelaksanaan: document.getElementById("lokasi_pelaksanaan").value,
+
+      tags: selectedTags,
+
+      share_job: document.getElementById("share_job").value,
+      level: document.getElementById("level").value,
+    };
+
+    const result = await safeFetch("/client/jobs", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + token,
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!result) return;
+
+    alert("Job berhasil diposting");
+    loadJobs();
+  }
+</script>
