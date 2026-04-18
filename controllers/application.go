@@ -12,7 +12,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 )
-
+// Author: Aura
+// PBI: KF-07
+// Sprint: Sprint 1
 func UpdateApplicationStatus(c *gin.Context) {
 
 	var input struct {
