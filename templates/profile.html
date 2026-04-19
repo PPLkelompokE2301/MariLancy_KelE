@@ -4,92 +4,225 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Client Profile - MariLancy</title>
 <link rel="stylesheet" href="/static/css/style.css">
+<meta charset="UTF-8">
+<title>Profile - MariLancy</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
 </head>
-<body>
-<main class="page-shell narrow">
-  <!-- Author: Fadhil -->
-  <!-- PBI: KF-02 -->
-  <!-- Sprint: Sprint 1 -->
-  <section class="page-hero">
-    <p class="eyebrow">KF-02</p>
-    <h1>Kelola Profil Client</h1>
-    <p>Form dasar untuk melihat dan memperbarui profil client.</p>
-  </section>
 
-  <!-- Author: Fadhil -->
-  <!-- PBI: KF-02 -->
-  <!-- Sprint: Sprint 1 -->
-  <section class="card">
-    <div class="section-head">
-      <h2>Data Client</h2>
-      <a class="button-link" href="/client">Kembali ke Dashboard</a>
+<body class="bg-gray-100">
+
+<nav class="navbar-custom">
+  <div class="navbar-inner">
+    <a class="logo" href="/client">MariLancy</a>
+
+    <div class="nav-menu" id="navbarNav">
+      <ul>
+        <li><a class="nav-link-underline" href="/client">Dashboard</a></li>
+        <li><a class="nav-link-underline" href="#projects">Projects</a></li>
+        <li><a class="nav-link-underline" href="#jobs">Jobs</a></li>
+        <li><a class="nav-link-underline" href="#message">Messages</a></li>
+      </ul>
     </div>
-
-    <form id="clientForm" class="form-grid">
-      <input id="nama" placeholder="Nama Client">
-      <input id="email" placeholder="Email" disabled>
-      <input id="lokasi" placeholder="Lokasi">
-      <input id="jenis_usaha" placeholder="Jenis Usaha">
-      <input id="jumlah_pegawai" type="number" placeholder="Jumlah Pegawai">
-      <input id="kontak" placeholder="Kontak">
-      <input id="galeri" class="full" placeholder="Galeri">
-      <textarea id="deskripsi" class="full" placeholder="Deskripsi"></textarea>
-      <textarea id="kultur_perusahaan" class="full" placeholder="Kultur Perusahaan"></textarea>
-    </form>
-
-    <div class="actions-row">
-      <button onclick="updateProfile()">Simpan Profil</button>
-      <button class="secondary" onclick="loadProfile()">Muat Ulang</button>
+    <div class="profile-box" onclick="goProfile()">
+      <img id="profile_img"
+        src="https://ui-avatars.com/api/?name=User"
+        class="profile-img">
     </div>
-  </section>
-</main>
+  </div>
+</nav>
 
-<!-- Author: Fadhil -->
-<!-- PBI: KF-02 -->
-<!-- Sprint: Sprint 1 -->
+<div class="max-w-4xl mx-auto mt-10 bg-white p-8 rounded-xl shadow">
+
+  <div class="flex items-center gap-3">
+    <h2 class="text-2xl font-bold">Profile Client</h2>
+
+  
+    <button onclick="goDashboard()"
+      class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
+      ← Dashboard
+    </button>
+  </div>
+
+
+  <button onclick="enableEdit()" id="editBtn"
+    class="bg-gray-200 px-4 py-2 rounded-lg hover:bg-gray-300">
+    ✏️ Edit
+  </button>
+
+
+  <div class="grid grid-cols-2 gap-4">
+
+    <input id="nama" placeholder="Nama Client" class="p-3 border rounded bg-gray-100" disabled>
+    <input id="email" placeholder="Email" class="p-3 border rounded bg-gray-200" disabled>
+
+    <input id="lokasi" placeholder="Lokasi" class="p-3 border rounded bg-gray-100" disabled>
+    <input id="jenis_usaha" placeholder="Jenis Usaha" class="p-3 border rounded bg-gray-100" disabled>
+
+    <input id="jumlah_pegawai" placeholder="Jumlah Pegawai" type="number" class="p-3 border rounded bg-gray-100" disabled>
+    <input id="kontak" placeholder="Kontak" class="p-3 border rounded bg-gray-100" disabled>
+
+    <input id="galeri" placeholder="Galeri" class="p-3 border rounded bg-gray-100 col-span-2" disabled>
+
+    <textarea id="deskripsi" placeholder="Deskripsi" class="p-3 border rounded col-span-2 bg-gray-100" disabled></textarea>
+
+    <textarea id="kultur_perusahaan" placeholder="Kultur Perusahaan" class="p-3 border rounded col-span-2 bg-gray-100" disabled></textarea>
+
+  </div>
+
+
+  <div id="actionBtn" class="mt-6 hidden flex gap-3">
+    <button onclick="updateProfile()"
+      class="bg-teal-500 hover:bg-teal-600 text-white px-6 py-3 rounded-lg">
+      Save
+    </button>
+
+    <button onclick="cancelEdit()"
+      class="bg-gray-400 hover:bg-gray-500 text-white px-6 py-3 rounded-lg">
+      Cancel
+    </button>
+  </div>
+
+</div>
+
 <script>
+
+
+const fields = [
+  "nama", "lokasi", "jenis_usaha",
+  "jumlah_pegawai", "kontak", "galeri",
+  "deskripsi", "kultur_perusahaan"
+]
+
+
+function checkAuth() {
+  const token = localStorage.getItem("token")
+
+  if (!token) {
+    alert("Silakan login terlebih dahulu")
+    window.location.href = "/login.html"
+    return null
+  }
+
+  return token
+}
+
+
 async function loadProfile() {
-  const data = await fetch("/client/profile").then((response) => response.json())
-  document.getElementById("nama").value = data.nama_client || ""
-  document.getElementById("email").value = data.email || ""
-  document.getElementById("lokasi").value = data.lokasi || ""
-  document.getElementById("jenis_usaha").value = data.jenis_usaha || ""
-  document.getElementById("jumlah_pegawai").value = data.jumlah_pegawai || 0
-  document.getElementById("kontak").value = data.kontak || ""
-  document.getElementById("galeri").value = data.galeri || ""
-  document.getElementById("deskripsi").value = data.deskripsi || ""
-  document.getElementById("kultur_perusahaan").value = data.kultur_perusahaan || ""
+  const token = checkAuth()
+  if (!token) return
+
+  try {
+    const res = await fetch("/client/profile", {
+      headers: {
+        "Authorization": "Bearer " + token
+      }
+    })
+
+
+    if (!res.ok) {
+      if (res.status === 401) {
+        alert("Session habis, silakan login ulang")
+        localStorage.removeItem("token")
+        window.location.href = "/login.html"
+        return
+      }
+
+      const err = await res.json()
+      alert(err.error || "Gagal load profile")
+      return
+    }
+
+    const data = await res.json()
+
+   
+    document.getElementById("nama").value = data.nama_client || ""
+    document.getElementById("email").value = data.email || ""
+    document.getElementById("lokasi").value = data.lokasi || ""
+    document.getElementById("jenis_usaha").value = data.jenis_usaha || ""
+    document.getElementById("jumlah_pegawai").value = data.jumlah_pegawai || 0
+    document.getElementById("kontak").value = data.kontak || ""
+    document.getElementById("galeri").value = data.galeri || ""
+    document.getElementById("deskripsi").value = data.deskripsi || ""
+    document.getElementById("kultur_perusahaan").value = data.kultur_perusahaan || ""
+
+  } catch (err) {
+    console.error(err)
+    alert("Terjadi kesalahan server")
+  }
+}
+
+
+function enableEdit() {
+  fields.forEach(id => {
+    const el = document.getElementById(id)
+    el.disabled = false
+    el.classList.remove("bg-gray-100")
+    el.classList.add("bg-white")
+  })
+
+  document.getElementById("actionBtn").classList.remove("hidden")
+  document.getElementById("editBtn").classList.add("hidden")
+}
+
+function cancelEdit() {
+  fields.forEach(id => {
+    const el = document.getElementById(id)
+    el.disabled = true
+    el.classList.add("bg-gray-100")
+  })
+
+  document.getElementById("actionBtn").classList.add("hidden")
+  document.getElementById("editBtn").classList.remove("hidden")
+
+  loadProfile()
 }
 
 async function updateProfile() {
+  const token = checkAuth()
+  if (!token) return
+
   const data = {
     nama_client: document.getElementById("nama").value,
     lokasi: document.getElementById("lokasi").value,
     jenis_usaha: document.getElementById("jenis_usaha").value,
-    jumlah_pegawai: parseInt(document.getElementById("jumlah_pegawai").value, 10) || 0,
+    jumlah_pegawai: parseInt(document.getElementById("jumlah_pegawai").value) || 0,
     kontak: document.getElementById("kontak").value,
     galeri: document.getElementById("galeri").value,
     deskripsi: document.getElementById("deskripsi").value,
-    kultur_perusahaan: document.getElementById("kultur_perusahaan").value,
+    kultur_perusahaan: document.getElementById("kultur_perusahaan").value
   }
 
-  const res = await fetch("/client/profile", {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  })
+  try {
+    const res = await fetch("/client/profile", {
+      method: "PUT",
+      headers: {
+        "Authorization": "Bearer " + token,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(data)
+    })
 
-  const result = await res.json()
-  alert(result.message || result.error || "Profil diperbarui")
-  loadProfile()
+    if (!res.ok) {
+      const err = await res.json()
+      alert(err.error || "Gagal update")
+      return
+    }
+
+    alert("Profile berhasil diupdate")
+    cancelEdit()
+
+  } catch (err) {
+    console.error(err)
+    alert("Terjadi kesalahan server")
+  }
 }
 
 loadProfile()
+
 </script>
+
 </body>
 </html>
