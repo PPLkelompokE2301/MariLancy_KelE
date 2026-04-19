@@ -12,42 +12,41 @@ import (
 )
 
 func main() {
-	// Author: Arga
-	// PBI: KF-17
-	// Sprint: Sprint 2
+
 	config.ConnectDB()
 
-	// Author: Hanif
-	// PBI: KF-13
-	// Sprint: Sprint 1
 	config.DB.AutoMigrate(
-		&models.Admin{},
-		&models.Client{},
 		&models.Freelancer{},
+		&models.Client{},
+		&models.Admin{},
+		&models.Job{},
+		&models.Application{},
+		&models.Rating{},
 	)
-
-	// Author: Arga
-	// PBI: KF-17
-	// Sprint: Sprint 1
 	config.SeedAdmin()
 
-	// Author: Hanif
-	// PBI: KF-13
-	// Sprint: Sprint 1
 	r := gin.Default()
+
 	r.Static("/static", "./static")
 	r.Static("/uploads", "./uploads")
 	r.LoadHTMLGlob("templates/*")
 
 	routes.SetupRoutes(r)
 
-	// Author: Hanif
-	// PBI: KF-13
-	// Sprint: Sprint 1
 	r.GET("/", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "MariLancy base project is running",
-		})
+		c.HTML(200, "login.html", nil)
+	})
+
+	r.GET("/register", func(c *gin.Context) {
+		c.HTML(200, "register.html", nil)
+	})
+
+	r.GET("/freelancer", func(c *gin.Context) {
+		c.HTML(200, "dashboard_freelancer.html", nil)
+	})
+
+	r.GET("/client", func(c *gin.Context) {
+		c.HTML(200, "dashboard_client.html", nil)
 	})
 
 	r.Run(":8080")
