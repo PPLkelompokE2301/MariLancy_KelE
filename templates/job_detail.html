@@ -1,0 +1,401 @@
+<!-- Author: Aura -->
+<!-- PBI: KF-11 -->
+<!-- Sprint: Sprint 1 -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>MariLancy</title>
+  <link rel="stylesheet" href="/static/css/style.css?v=<?= timestamp ?>">
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body>
+
+
+<div class="navbar-custom">
+  <div class="navbar-inner">
+    <a class="logo" href="/">MariLancy</a>
+  </div>
+</div>
+
+
+<div class="hero">
+  Detail Proyek
+</div>
+
+<div class="detail-wrapper">
+  <div class="card-detail">
+
+    <div id="jobDetail">Loading...</div>
+
+    <button id="applyBtn"
+      onclick="applyJob()" class="apply-btn"
+      style="display:none;">
+      Lamar Job
+    </button>
+
+  </div>
+</div>
+
+<script>
+
+function formatDate(dateString){
+  if(!dateString) return "-"
+  const date = new Date(dateString)
+  if(isNaN(date.getTime())) return "-"
+  return date.toLocaleDateString("id-ID", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric"
+  })
+}
+
+const urlParams = new URLSearchParams(window.location.search)
+const id = urlParams.get("id")
+
+const token = localStorage.getItem("token") || ""
+const role = localStorage.getItem("role") || ""
+
+let myApplications = []
+let isEditMode = false
+let originalJob = null
+
+async function safeFetch(url, options = {}) {
+  const res = await fetch(url, options)
+
+  if (res.status === 401) {
+    alert("Session habis")
+    localStorage.clear()
+    window.location.href = "/"
+    return null
+  }
+
+  if (res.status === 403) {
+    alert("Akses ditolak")
+    return null
+  }
+
+  return await res.json()
+}
+
+async function loadDetail(){
+
+  if(!id){
+    document.getElementById("jobDetail").innerHTML =
+      "<p>ID tidak ditemukan</p>"
+    return
+  }
+
+  try {
+    const job = await safeFetch("/jobs/" + id, {
+      headers:{
+        "Authorization":"Bearer " + token
+      }
+    })
+    originalJob = job
+
+    document.getElementById("jobDetail").innerHTML = `
+      
+      <div class="detail-header">
+        <h1>${job.judul}</h1>
+        <p class="company">${job.client?.nama_client}</p>
+      </div>
+
+      <div class="badge-row">
+        <span class="badge">${job.kategori}</span>
+        <span class="badge">${job.level}</span>
+        <span class="badge">${job.tipe}</span>
+      </div>
+
+      <div class="main-grid">
+
+      
+        <div class="left-content">
+          <div class="info-row"><b>Status:</b> ${job.status}</div>
+          <div class="section">
+            <h3>Job Description</h3>
+            <p>${job.job_desc}</p>
+          </div>
+
+          <div class="section">
+            <h3>Kebutuhan Proyek</h3>
+            <p>${job.kebutuhan_proyek}</p>
+          </div>
+
+          <div class="section">
+            <h3>Kebutuhan Skill</h3>
+            <p>${job.kebutuhan_skill}</p>
+          </div>
+
+          <div class="section">
+            <h3>Tags</h3>
+            <div id="tagContainer"></div>
+          </div>
+
+        </div>
+
+     
+        <div class="right-content">
+          <div id="editActionBox"></div>
+
+          <div class="sidebar-card">
+            <div class="info-row"><b>Budget:</b> Rp ${job.budget?.toLocaleString()}</div>
+            <div class="info-row"><b>Pendidikan:</b> ${job.batas_pendidikan}</div>
+            <div class="info-row"><b>Pengalaman:</b> ${job.pengalaman_kerja}</div>
+            <div class="info-row"><b>Lokasi:</b> ${job.lokasi_pelaksanaan}</div>
+            <div class="info-row"><b>Dibuat:</b> ${formatDate(job.created_at)}</div>
+          </div>
+
+          <div class="sidebar-card">
+            <h3>Send Us Message</h3>
+            <div class="form">
+              <input placeholder="Full Name">
+              <input placeholder="Email">
+              <input placeholder="Phone">
+              <textarea placeholder="Message"></textarea>
+              <button>Kirim</button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    `
+
+    let tags = []
+    try {
+      if (Array.isArray(job.tags)) {
+        tags = job.tags
+      } else if (typeof job.tags === "string") {
+        tags = JSON.parse(job.tags)
+      }
+    } catch (e) {}
+
+    const tagContainer = document.getElementById("tagContainer")
+
+    if (tagContainer) {
+      tagContainer.innerHTML = tags.map(tag => `
+        <span class="tag">${tag}</span>
+      `).join("")
+    }
+
+    await loadMyApplications()
+    updateApplyButton()
+    renderEditButton(job)
+
+  } catch (err) {
+    document.getElementById("jobDetail").innerHTML =
+      "<p>Server error</p>"
+  }
+}
+
+async function loadMyApplications() {
+  if (!token || role !== "freelancer") return
+
+  const res = await safeFetch("/freelancer/applications", {
+    headers: { "Authorization": "Bearer " + token }
+  })
+
+  if (!res) return
+  myApplications = res
+}
+
+function updateApplyButton() {
+  const btn = document.querySelector(".apply-btn")
+  if (!btn) return
+
+  if (!token || role !== "freelancer") {
+    btn.style.display = "none"
+    return
+  }
+
+  const alreadyApplied = myApplications.some(app => app.job_id == parseInt(id))
+
+  if (alreadyApplied) {
+    btn.innerText = "Sudah Melamar"
+    btn.disabled = true
+    btn.style.background = "#9ca3af"
+    return
+  }
+
+  btn.onclick = applyJob
+}
+function renderEditButton(job) {
+  const box = document.getElementById("editActionBox")
+  if (!box) return
+
+  const myClientId = localStorage.getItem("client_id")
+
+
+  if (!token || role !== "client" || job.client_id != myClientId) {
+    box.innerHTML = ""
+    return
+  }
+
+  box.innerHTML = `
+    <button onclick="toggleEditMode()"
+      style="margin-top:15px;padding:10px 15px;background:#2D9596;color:white;border:none;border-radius:8px;cursor:pointer;">
+      ✏️ Edit Job
+    </button>
+  `
+}
+function toggleEditMode() {
+  isEditMode = !isEditMode
+
+  const job = originalJob
+  const container = document.getElementById("jobDetail")
+
+  if (!isEditMode) {
+    loadDetail()
+    return
+  }
+
+  container.innerHTML = `
+    <div class="detail-header">
+      <input id="edit_judul" value="${job.judul}" style="width:100%;padding:8px;" />
+      <p class="company">${job.client?.nama_client || "-"}</p>
+    </div>
+
+    <div class="detail-grid">
+      <div class="item">
+        <span>Status</span>
+        <select id="edit_status">
+          <option value="">Pilih Status</option>
+          <option value="dibuka">Dibuka</option>
+          <option value="ditutup">Ditutup</option>
+        </select>
+      </div>
+      <div class="item"><span>Deskripsi</span><textarea id="edit_desc">${job.job_desc}</textarea></div>
+      <div class="item"><span>Proyek</span><textarea id="edit_proyek">${job.kebutuhan_proyek}</textarea></div>
+      <div class="item"><span>Skill</span><textarea id="edit_skill">${job.kebutuhan_skill}</textarea></div>
+
+      <div class="item">
+        <span>Budget</span>
+        <select id="edit_budget">
+          <option value="">Pilih Budget</option>
+          <option value="100000-300000">100000 - 300000</option>
+          <option value="300000-500000">300000 - 500000</option>
+          <option value="500000-700000">500000 - 700000</option>
+          <option value="700000-1000000">700000 - 1000000</option>
+          <option value="1000000">1000000+</option>
+        </select>
+      </div>
+      <div class="item"><span>Lokasi</span><input id="edit_lokasi" value="${job.lokasi_pelaksanaan}" /></div>
+    </div>
+
+    <button onclick="saveJob(${job.id})"
+      style="margin-top:15px;padding:10px 15px;background:green;color:white;border:none;border-radius:8px;">
+      💾 Save
+    </button>
+
+    <button onclick="toggleEditMode()"
+      style="margin-top:15px;padding:10px 15px;background:gray;color:white;border:none;border-radius:8px;">
+      Cancel
+    </button>
+  `
+  setTimeout(() => {
+  document.getElementById("edit_budget").value = job.budget || ""
+  document.getElementById("edit_status").value = job.status || ""
+}, 0)
+}
+async function saveJob(id) {
+  const payload = {
+    judul: document.getElementById("edit_judul").value,
+    job_desc: document.getElementById("edit_desc").value,
+    kebutuhan_proyek: document.getElementById("edit_proyek").value,
+    kebutuhan_skill: document.getElementById("edit_skill").value,
+    budget: document.getElementById("edit_budget").value,
+    lokasi_pelaksanaan: document.getElementById("edit_lokasi").value,
+    status: document.getElementById("edit_status").value
+  }
+
+  const res = await safeFetch("/client/jobs/" + id, {
+    method: "PUT",
+    headers: {
+      "Authorization": "Bearer " + token,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  })
+
+  if (!res) return
+
+  alert("Job berhasil diupdate")
+  isEditMode = false
+  loadDetail()
+}
+
+async function applyJob() {
+
+  if (!token) {
+    alert("Login dulu")
+    return
+  }
+
+  const result = await safeFetch("/freelancer/apply", {
+    method: "POST",
+    headers: {
+      "Authorization": "Bearer " + token,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      job_id: parseInt(id)
+    })
+  })
+
+  if (!result) return
+
+  alert("Berhasil melamar!")
+  loadDetail()
+}
+
+loadDetail()
+
+</script>
+
+
+<div class="footer">
+  <div class="footer-container">
+
+    <div class="footer-col">
+      <h2>MariLancy</h2>
+      <p>
+        MariLancy adalah platform freelance yang menghubungkan mahasiswa dan talenta pemula dengan klien untuk mendapatkan pengalaman kerja nyata serta membangun portofolio melalui proyek digital.
+      </p>
+    </div>
+
+    <div class="footer-col">
+      <h4>Tentang Kami</h4>
+      <ul>
+        <li>Tentang Platform</li>
+        <li>Tim Pengembang</li>
+        <li>Partners</li>
+        <li>Untuk Freelancer</li>
+        <li>Untuk Klien</li>
+      </ul>
+    </div>
+
+    <div class="footer-col">
+      <h4>Kategori Proyek</h4>
+      <ul>
+        <li>Desain Grafis</li>
+        <li>Web Development</li>
+        <li>Content Writing</li>
+        <li>Social Media</li>
+        <li>Video Editing</li>
+        <li>Data Entry</li>
+        <li>Digital Marketing</li>
+      </ul>
+    </div>
+
+    <div class="footer-col">
+      <h4>Dapatkan Info Proyek Terbaru</h4>
+      <p>Dapatkan update proyek terbaru dan kesempatan freelance langsung ke email kamu.</p>
+      <input type="email" placeholder="Email Address" class="footer-input">
+      <button class="footer-btn">Kirim</button>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>
