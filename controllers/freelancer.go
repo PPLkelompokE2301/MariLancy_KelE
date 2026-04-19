@@ -1,47 +1,24 @@
 // Author: Fadhil
-// PBI: KF-02
+// PBI: KF-09
 // Sprint: Sprint 1
 package controllers
 
 import (
-	"strconv"
-
+	"fmt"
 	"marilancy/config"
 	"marilancy/models"
 
 	"github.com/gin-gonic/gin"
 )
 
-func resolveFreelancerID(c *gin.Context) (uint, error) {
-	// Author: Fadhil
-	// PBI: KF-02
-	// Sprint: Sprint 1
-	idParam := c.Query("id")
-	if idParam != "" {
-		parsedID, err := strconv.Atoi(idParam)
-		if err != nil {
-			return 0, err
-		}
-		return uint(parsedID), nil
-	}
-
-	var freelancer models.Freelancer
-	if err := config.DB.Order("id asc").First(&freelancer).Error; err != nil {
-		return 0, err
-	}
-
-	return freelancer.ID, nil
-}
-
 func GetFreelancerProfile(c *gin.Context) {
-	// Author: Fadhil
-	// PBI: KF-02
-	// Sprint: Sprint 1
-	id, err := resolveFreelancerID(c)
-	if err != nil {
-		c.JSON(404, gin.H{"error": "User not found"})
+	id, ok := getUserIDFromContext(c)
+	if !ok {
+		c.JSON(401, gin.H{"error": "Unauthorized"})
 		return
 	}
+
+	fmt.Println("🔥 HIT GET /freelancer/profile, ID:", id)
 
 	var user models.Freelancer
 	if err := config.DB.First(&user, id).Error; err != nil {
@@ -53,12 +30,9 @@ func GetFreelancerProfile(c *gin.Context) {
 }
 
 func UpdateFreelancerProfile(c *gin.Context) {
-	// Author: Fadhil
-	// PBI: KF-02
-	// Sprint: Sprint 1
-	id, err := resolveFreelancerID(c)
-	if err != nil {
-		c.JSON(404, gin.H{"error": "User not found"})
+	id, ok := getUserIDFromContext(c)
+	if !ok {
+		c.JSON(401, gin.H{"error": "Unauthorized"})
 		return
 	}
 
@@ -76,14 +50,11 @@ func UpdateFreelancerProfile(c *gin.Context) {
 	user.Bio = c.PostForm("bio")
 	user.Skill = c.PostForm("skill")
 	user.WorkPre = c.PostForm("work_pre")
-	user.MonthlySalaryExp = c.PostForm("monthly_salary_exp")
 
-	if age, err := strconv.Atoi(c.PostForm("age")); err == nil {
-		user.Age = age
-	}
-	if years, err := strconv.Atoi(c.PostForm("years_of_experience")); err == nil {
-		user.YearsOfExperience = years
-	}
+	fmt.Sscanf(c.PostForm("age"), "%d", &user.Age)
+	fmt.Sscanf(c.PostForm("years_of_experience"), "%d", &user.YearsOfExperience)
+
+	user.MonthlySalaryExp = c.PostForm("monthly_salary_exp")
 
 	file, err := c.FormFile("resume")
 	if err == nil {
@@ -91,7 +62,6 @@ func UpdateFreelancerProfile(c *gin.Context) {
 		c.SaveUploadedFile(file, path)
 		user.Resume = "/" + path
 	}
-
 	fileCert, err := c.FormFile("certificates")
 	if err == nil {
 		path := "uploads/cert_" + fileCert.Filename
