@@ -94,6 +94,73 @@ func CreateJob(c *gin.Context) {
 	c.JSON(200, gin.H{"message": "Job created"})
 }
 
+func GetJobs(c *gin.Context) {
+	var jobs []models.Job
+
+	if err := config.DB.
+		Preload("Client").
+		Find(&jobs).Error; err != nil {
+
+		c.JSON(500, gin.H{"error": "Gagal mengambil jobs"})
+		return
+	}
+
+	for i := range jobs {
+		var count int64
+
+		err := config.DB.Model(&models.Application{}).
+			Where("job_id = ?", jobs[i].ID).
+			Count(&count).Error
+
+		if err != nil {
+			count = 0
+		}
+
+		jobs[i].ApplicationsCount = count
+	}
+
+	var result []gin.H
+
+	for _, job := range jobs {
+
+		var tags []string
+		if job.Tags != "" {
+			_ = json.Unmarshal([]byte(job.Tags), &tags)
+		}
+
+		result = append(result, gin.H{
+			"id":                 job.ID,
+			"judul":              job.Judul,
+			"job_desc":           job.JobDesc,
+			"kebutuhan_proyek":   job.KebutuhanProyek,
+			"kebutuhan_skill":    job.KebutuhanSkill,
+			"status":             job.Status,
+			"kategori":           job.Kategori,
+			"budget":             job.Budget,
+			"batas_pendidikan":   job.BatasPendidikan,
+			"pengalaman_kerja":   job.PengalamanKerja,
+			"tipe":               job.Tipe,
+			"lokasi_pelaksanaan": job.LokasiPelaksanaan,
+			"tags":               tags,
+
+			"share_job": job.ShareJob,
+			"level":     job.Level,
+
+			"client_id": job.ClientID,
+
+			"client": gin.H{
+				"id":          job.Client.ID,
+				"nama_client": job.Client.NamaClient,
+			},
+
+			"applications_count": job.ApplicationsCount,
+			"created_at":         job.CreatedAt,
+		})
+	}
+
+	c.JSON(200, result)
+}
+
 // Author: Aura
 // PBI: KF-11
 // Sprint: Sprint 1
@@ -110,7 +177,100 @@ func GetJobDetail(c *gin.Context) {
 	c.JSON(200, job)
 }
 
+// Author: Danu
+// PBI: KF-03
+// Sprint: Sprint 1
 
+func DeleteJob(c *gin.Context) {
+	id := c.Param("id")
+
+	userID, ok := getUserID(c)
+	if !ok {
+		c.JSON(401, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	var job models.Job
+	if err := config.DB.First(&job, id).Error; err != nil {
+		c.JSON(404, gin.H{"error": "Job tidak ditemukan"})
+		return
+	}
+
+	if job.ClientID != userID {
+		c.JSON(403, gin.H{"error": "Bukan job milikmu"})
+		return
+	}
+
+	job.Status = "dihapus"
+
+	if err := config.DB.Save(&job).Error; err != nil {
+		c.JSON(500, gin.H{"error": "Gagal menghapus job"})
+		return
+	}
+
+	c.JSON(200, gin.H{"message": "Job dihapus (soft delete)"})
+}
+
+func UpdateJob(c *gin.Context) {
+	id := c.Param("id")
+
+	userID, ok := getUserID(c)
+	if !ok {
+		c.JSON(401, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	var job models.Job
+	if err := config.DB.First(&job, id).Error; err != nil {
+		c.JSON(404, gin.H{"error": "Job tidak ditemukan"})
+		return
+	}
+
+	if job.ClientID != userID {
+		c.JSON(403, gin.H{"error": "Bukan job milikmu"})
+		return
+	}
+
+	var input struct {
+		Judul             string `json:"judul"`
+		JobDesc           string `json:"job_desc"`
+		KebutuhanProyek   string `json:"kebutuhan_proyek"`
+		KebutuhanSkill    string `json:"kebutuhan_skill"`
+		Budget            string `json:"budget"`
+		LokasiPelaksanaan string `json:"lokasi_pelaksanaan"`
+		Status            string `json:"status"`
+	}
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	if job.Status == "dihapus" {
+		c.JSON(400, gin.H{"error": "Job sudah dihapus"})
+		return
+	}
+
+	updateData := map[string]interface{}{
+		"judul":              input.Judul,
+		"job_desc":           input.JobDesc,
+		"kebutuhan_proyek":   input.KebutuhanProyek,
+		"kebutuhan_skill":    input.KebutuhanSkill,
+		"budget":             input.Budget,
+		"lokasi_pelaksanaan": input.LokasiPelaksanaan,
+		"status":             input.Status,
+	}
+
+	if err := config.DB.Model(&models.Job{}).
+		Where("id = ?", id).
+		Updates(updateData).Error; err != nil {
+
+		c.JSON(500, gin.H{"error": "Gagal update job"})
+		return
+	}
+
+	c.JSON(200, gin.H{"message": "Job updated"})
+}
 
 
 
