@@ -35,17 +35,6 @@ func getUserID(c *gin.Context) (uint, bool) {
 	}
 }
 
-func GetJobDetail(c *gin.Context) {
-	id := c.Param("id")
-
-	var job models.Job
-	if err := config.DB.Preload("Client").First(&job, id).Error; err != nil {
-		c.JSON(404, gin.H{"error": "Job tidak ditemukan"})
-		return
-	}
-
-	c.JSON(200, job)
-}
 func DeleteJob(c *gin.Context) {
 	id := c.Param("id")
 
