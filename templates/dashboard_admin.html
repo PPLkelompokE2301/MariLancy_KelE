@@ -6,116 +6,120 @@
 <head>
 <meta charset="UTF-8">
 <title>Admin Dashboard - MariLancy</title>
-<link rel="stylesheet" href="/static/css/style.css">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="/static/css/style.css?v=<?= timestamp ?>">
+
 </head>
-<body>
-<main class="page-shell">
-  <!-- Author: Hanif -->
-  <!-- PBI: KF-13 -->
-  <!-- Sprint: Sprint 1 -->
-  <section class="page-hero">
-    <p class="eyebrow">KF-17 • KF-13</p>
-    <h1>Admin Dashboard</h1>
-    <p>Melihat ringkasan user dan menghapus data client atau freelancer.</p>
-  </section>
 
-  <!-- Author: Arga -->
-  <!-- PBI: KF-17 -->
-  <!-- Sprint: Sprint 1 -->
-  <section class="stats-grid">
-    <article class="card">
-      <h2>Total Admin</h2>
-      <strong id="totalAdmins">0</strong>
-    </article>
-    <article class="card">
-      <h2>Total Freelancer</h2>
-      <strong id="totalFreelancers">0</strong>
-    </article>
-    <article class="card">
-      <h2>Total Client</h2>
-      <strong id="totalClients">0</strong>
-    </article>
-  </section>
+<body class="bg-gray-100">
 
-  <!-- Author: Arga -->
-  <!-- PBI: KF-17 -->
-  <!-- Sprint: Sprint 1 -->
-  <section class="split-grid">
-    <article class="card">
-      <div class="section-head">
-        <h2>Data Freelancer</h2>
-        <button onclick="loadFreelancers()">Refresh</button>
-      </div>
-      <div id="freelancerList" class="list-stack"></div>
-    </article>
+<nav class="navbar-custom">
+  <div class="navbar-inner">
+    <a class="logo" href="/admin">MariLancy</a>
 
-    <article class="card">
-      <div class="section-head">
-        <h2>Data Client</h2>
-        <button onclick="loadClients()">Refresh</button>
-      </div>
-      <div id="clientList" class="list-stack"></div>
-    </article>
-  </section>
-</main>
+    <div class="flex items-center gap-4">
+      <span class="text-sm text-gray-600">Admin Panel</span>
 
-<!-- Author: Arga -->
-<!-- PBI: KF-17 -->
-<!-- Sprint: Sprint 1 -->
+      <button onclick="logout()"
+        class="px-4 py-2 bg-red-500 hover:bg-red-600 rounded-xl text-white text-sm">
+        Logout
+      </button>
+    </div>
+  </div>
+</nav>
+
+<div class="max-w-5xl mx-auto mt-10">
+
+  <h2 class="text-2xl font-bold mb-4">Admin Dashboard</h2>
+
+  <div class="grid grid-cols-3 gap-4">
+
+    <div class="bg-white p-6 rounded-xl shadow">
+      <h3 class="text-lg font-semibold">Freelancers</h3>
+      <p id="totalFreelancers" class="text-2xl mt-2">-</p>
+    </div>
+
+    <div class="bg-white p-6 rounded-xl shadow">
+      <h3 class="text-lg font-semibold">Clients</h3>
+      <p id="totalClients" class="text-2xl mt-2">-</p>
+    </div>
+
+    <div class="bg-white p-6 rounded-xl shadow">
+      <h3 class="text-lg font-semibold">Jobs</h3>
+      <p id="totalJobs" class="text-2xl mt-2">-</p>
+    </div>
+
+  </div>
+
+</div>
+
 <script>
-async function fetchJSON(url, options = {}) {
-  const response = await fetch(url, options)
-  return response.json()
+
+const token = localStorage.getItem("token")
+const role = localStorage.getItem("role")
+
+if (!token) {
+  alert("Silakan login dulu")
+  window.location.href = "/"
 }
+
+if (role !== "admin") {
+  alert("Akses ditolak (bukan admin)")
+  window.location.href = "/"
+}
+
+
+function logout() {
+  alert("Berhasil logout")
+  localStorage.clear()
+  window.location.href = "/"
+}
+
+
+async function safeFetch(url, options = {}) {
+  const res = await fetch(url, options)
+
+  if (res.status === 401) {
+    alert("Session habis")
+    localStorage.clear()
+    window.location.href = "/"
+    return null
+  }
+
+  if (res.status === 403) {
+    alert("Forbidden")
+    window.location.href = "/"
+    return null
+  }
+
+  try {
+    return await res.json()
+  } catch {
+    return null
+  }
+}
+
 
 async function loadDashboard() {
-  const data = await fetchJSON("/admin/data")
-  document.getElementById("totalAdmins").innerText = data.admins || 0
+
+  const data = await safeFetch("/admin/data", {
+    headers: {
+      "Authorization": "Bearer " + token
+    }
+  })
+
+  if (!data) return
+
+
   document.getElementById("totalFreelancers").innerText = data.freelancers || 0
   document.getElementById("totalClients").innerText = data.clients || 0
-}
-
-function renderUserList(containerId, rows, deleteBasePath, labelKey) {
-  const container = document.getElementById(containerId)
-  if (!rows.length) {
-    container.innerHTML = "<p class='empty-state'>Belum ada data.</p>"
-    return
-  }
-
-  container.innerHTML = rows.map((row) => `
-    <div class="list-item">
-      <div>
-        <strong>${row[labelKey] || "-"}</strong>
-        <p>${row.email || "-"}</p>
-      </div>
-      <button class="danger" onclick="deleteUser('${deleteBasePath}', ${row.ID})">Hapus</button>
-    </div>
-  `).join("")
-}
-
-async function loadFreelancers() {
-  const data = await fetchJSON("/admin/freelancers")
-  renderUserList("freelancerList", data.data || [], "/admin/freelancers", "nama")
-}
-
-async function loadClients() {
-  const data = await fetchJSON("/admin/clients")
-  renderUserList("clientList", data.data || [], "/admin/clients", "nama_client")
-}
-
-async function deleteUser(path, id) {
-  await fetch(`${path}/${id}`, { method: "DELETE" })
-  await loadDashboard()
-  if (path.includes("freelancers")) {
-    await loadFreelancers()
-    return
-  }
-  await loadClients()
+  document.getElementById("totalJobs").innerText = data.jobs || 0
 }
 
 loadDashboard()
-loadFreelancers()
-loadClients()
+
 </script>
+
 </body>
 </html>

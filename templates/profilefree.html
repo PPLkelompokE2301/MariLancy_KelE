@@ -1,70 +1,292 @@
 <!-- Author: Fadhil -->
 <!-- PBI: KF-02 -->
 <!-- Sprint: Sprint 1 -->
+
+<!-- Author: Rania -->
+<!-- PBI: KF-09 -->
+<!-- Sprint: Sprint 1 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Freelancer Profile - MariLancy</title>
+<title>Freelancer Profile</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="/static/css/style.css">
 </head>
-<body>
-<main class="page-shell narrow">
-  <!-- Author: Fadhil -->
-  <!-- PBI: KF-02 -->
-  <!-- Sprint: Sprint 1 -->
-  <section class="page-hero">
-    <p class="eyebrow">KF-02</p>
-    <h1>Kelola Profil Freelancer</h1>
-    <p>Form dasar untuk melihat dan memperbarui profil freelancer, termasuk file pendukung.</p>
-  </section>
 
-  <!-- Author: Fadhil -->
-  <!-- PBI: KF-02 -->
-  <!-- Sprint: Sprint 1 -->
-  <section class="card">
-    <div class="section-head">
-      <h2>Data Freelancer</h2>
-      <a class="button-link" href="/freelancer">Kembali ke Dashboard</a>
+<body class="bg-gray-100">
+
+
+<nav class="navbar-custom">
+  <div class="navbar-inner">
+    <a class="logo" href="/freelancer">MariLancy</a>
+
+    <div class="nav-menu">
+      <ul>
+        <li><a href="/freelancer">Dashboard</a></li>
+      </ul>
     </div>
 
-    <form id="freelancerForm" class="form-grid" enctype="multipart/form-data">
-      <input id="nama" placeholder="Nama">
-      <input id="email" placeholder="Email" disabled>
-      <input id="gender" placeholder="Gender">
-      <input id="age" type="number" placeholder="Umur">
-      <input id="location" placeholder="Lokasi">
-      <input id="education_level" placeholder="Pendidikan">
-      <input id="years_of_experience" type="number" placeholder="Pengalaman Kerja">
-      <input id="monthly_salary_exp" placeholder="Ekspektasi Gaji">
-      <input id="job_interest" placeholder="Minat Kerja">
-      <input id="work_pre" placeholder="Preferensi Kerja">
-      <textarea id="bio" class="full" placeholder="Bio"></textarea>
-      <input id="skillInput" class="full" placeholder="Skill, pisahkan dengan koma">
-      <label class="upload-field">Resume<input type="file" id="resume"></label>
-      <label class="upload-field">Certificates<input type="file" id="certificates"></label>
-      <label class="upload-field full">Attachments<input type="file" id="attachments"></label>
-    </form>
+    <div class="profile-box" onclick="goProfile()">
+      <img id="profile_img"
+        src="https://ui-avatars.com/api/?name=User"
+        class="profile-img">
+    </div>
+  </div>
+</nav>
 
-    <div class="file-preview">
-      <a id="resumePreview" target="_blank"></a>
-      <a id="certPreview" target="_blank"></a>
-      <a id="attachPreview" target="_blank"></a>
+
+<div class="max-w-7xl mx-auto mt-10 flex gap-6">
+
+
+  <div class="w-64 bg-white rounded-xl shadow p-4 h-fit">
+    <button onclick="showSection('profile')"
+      class="w-full text-left p-3 rounded hover:bg-gray-100">
+      👤 Data Diri
+    </button>
+
+    <button onclick="showSection('history')"
+      class="w-full text-left p-3 rounded hover:bg-gray-100 mt-2">
+      📄 Riwayat Lamaran
+    </button>
+  </div>
+
+
+  <div class="flex-1">
+
+
+    <div id="profileSection">
+
+
+      <div class="bg-white rounded-xl shadow p-6 flex items-center gap-6">
+
+        <img id="avatar"
+          class="w-24 h-24 rounded-full border"
+          src="https://ui-avatars.com/api/?name=User">
+
+        <div class="flex-1">
+          <h2 id="namaText" class="text-2xl font-bold">Nama Freelancer</h2>
+          <p id="job_interestText" class="text-gray-500">Job Interest</p>
+
+          <div class="flex gap-4 mt-2 text-sm text-gray-600">
+            <span id="locationText">📍 Location</span>
+            <span id="expText">💼 0 Tahun</span>
+          </div>
+        </div>
+
+        <button onclick="enableEdit()"
+          class="bg-blue-500 text-white px-4 py-2 rounded">
+          ✏ Edit
+        </button>
+
+      </div>
+
+
+      <div class="grid grid-cols-3 gap-4 mt-6">
+
+        <div class="bg-white p-4 rounded-xl shadow text-center">
+          <h3 class="text-xl font-bold" id="penilaian">0</h3>
+          <p class="text-gray-500 text-sm">Rating</p>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl shadow text-center">
+          <h3 class="text-xl font-bold" id="jumlah_proyek_selesai">0</h3>
+          <p class="text-gray-500 text-sm">Project Selesai</p>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl shadow text-center">
+          <h3 class="text-xl font-bold" id="monthly_salary_exp_text">0</h3>
+          <p class="text-gray-500 text-sm">Expected Salary</p>
+        </div>
+
+      </div>
+
+
+      <div class="bg-white mt-6 p-6 rounded-xl shadow">
+
+        <h3 class="text-lg font-bold mb-4">Detail Profile</h3>
+
+        <div class="grid grid-cols-2 gap-4">
+
+          <input id="nama" disabled class="input" placeholder="Nama">
+          <input id="email" disabled class="input" placeholder="Email">
+
+          <select id="gender" disabled class="input">
+            <option value="">Pilih Gender</option>
+            <option value="Pria">Pria</option>
+            <option value="Wanita">Wanita</option>
+          </select>
+          <input id="age" disabled class="input" placeholder="Age">
+
+          <input list="location" id="location" class="input" placeholder="Cari lokasi..." disabled>
+
+          <datalist id="location">
+            <option>Jakarta</option>
+            <option>Bandung</option>
+            <option>Surabaya</option>
+            <option>Yogyakarta</option>
+            <option>Bali</option>
+            <option>Medan</option>
+            <option>Semarang</option>
+            <option>Makassar</option>
+            <option>Palembang</option>
+            <option>Depok</option>
+            <option>Tangerang</option>
+            <option>Bekasi</option>
+          </datalist>
+
+          <select id="education_level" disabled class="input">
+            <option value="">Pilih Pendidikan</option>
+            <option>SMA/SMK</option>
+            <option>D1</option>
+            <option>D2</option>
+            <option>D3</option>
+            <option>D4</option>
+            <option>S1</option>
+            <option>S2</option>
+            <option>S3</option>
+          </select>
+
+          <input id="years_of_experience" disabled class="input" placeholder="Experience">
+
+          <select id="monthly_salary_exp" disabled class="input">
+            <option value="">Ekspektasi Gaji</option>
+            <option>100000-300000</option>
+            <option>300000-500000</option>
+            <option>500000-700000</option>
+            <option>700000-1000000</option>
+            <option>>1000000</option>
+          </select>
+
+          <select id="job_interest" disabled class="input col-span-2">
+            <option>Management</option>
+            <option>Finance</option>
+            <option>Photography</option>
+            <option>IT</option>
+            <option>Design</option>
+            <option>Researcher</option>
+            <option>Marketing</option>
+            <option>Analyst</option>
+            <option>Content Creator</option>
+          </select>
+
+          <textarea id="bio" disabled class="input col-span-2" placeholder="Bio"></textarea>
+
+          <select id="work_pre" disabled class="input col-span-2">
+            <option>On-site</option>
+            <option>Hybrid</option>
+            <option>Remote</option>
+          </select>
+      
+          <input type="file" id="resume" disabled class="input col-span-2">
+          <p id="resumeName" class="text-sm text-gray-500">No file chosen</p>
+          <a id="resumePreview" target="_blank" class="text-blue-500 text-sm"></a>
+
+  
+          <input type="file" id="certificates" disabled class="input col-span-2">
+          <p id="certName" class="text-sm text-gray-500">No file chosen</p>
+          <a id="certPreview" target="_blank" class="text-blue-500 text-sm"></a>
+
+       
+          <input type="file" id="attachments" disabled class="input col-span-2">
+          <p id="attachName" class="text-sm text-gray-500">No file chosen</p>
+          <a id="attachPreview" target="_blank" class="text-blue-500 text-sm"></a>        
+        </div>
+      </div>
+
+
+      <div class="bg-white mt-6 p-6 rounded-xl shadow">
+        <h3 class="text-lg font-bold mb-4">Skills</h3>
+
+        <div id="skillList" class="flex flex-wrap gap-2"></div>
+
+        <input id="skillInput"
+          disabled
+          class="input mt-3"
+          placeholder="Pisahkan dengan koma">
+      </div>
+
+
+      <div class="text-right mt-4">
+        <button id="saveBtn"
+          onclick="updateProfile()"
+          class="hidden bg-green-500 text-white px-6 py-2 rounded">
+          Save Changes
+        </button>
+
+        <button onclick="cancelEdit()"
+          class="bg-gray-400 hover:bg-gray-500 text-white px-6 py-3 rounded-lg">
+          Cancel
+        </button>
+      </div>
+
     </div>
 
-    <div class="actions-row">
-      <button onclick="updateProfile()">Simpan Profil</button>
-      <button class="secondary" onclick="loadProfile()">Muat Ulang</button>
-    </div>
-  </section>
-</main>
 
-<!-- Author: Fadhil -->
-<!-- PBI: KF-02 -->
-<!-- Sprint: Sprint 1 -->
+    <div id="historySection" class="hidden bg-white p-6 rounded-xl shadow">
+      <h3 class="text-lg font-bold mb-4">Riwayat Lamaran</h3>
+      <div id="applicationList" class="space-y-3"></div>
+    </div>
+
+  </div>
+</div>
+
+<style>
+.input {
+  border: 1px solid #ddd;
+  padding: 10px;
+  border-radius: 8px;
+  width: 100%;
+}
+</style>
+
 <script>
+const params = new URLSearchParams(window.location.search)
+const openTab = params.get("tab")
+const openAppId = params.get("app")
+
+const token = localStorage.getItem("token")
+
+function checkAuth() {
+  if (!token) {
+    alert("Silakan login terlebih dahulu")
+    window.location.href = "/login.html"
+    return null
+  }
+  return token
+}
+
+function showSection(section) {
+  document.getElementById("profileSection").classList.toggle("hidden", section !== "profile")
+  document.getElementById("historySection").classList.toggle("hidden", section !== "history")
+
+  if (section === "history") {
+    loadApplications().then(() => {
+
+      if (openAppId) {
+        const el = document.getElementById("app-" + openAppId)
+
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" })
+          el.classList.add("ring-2", "ring-blue-500", "bg-blue-50")
+        }
+      }
+
+    })
+  }
+}
+
 async function loadProfile() {
-  const data = await fetch("/freelancer/profile").then((response) => response.json())
+  const t = checkAuth()
+  if (!t) return
+
+  const res = await fetch("/freelancer/profile", {
+    headers: { "Authorization": "Bearer " + t }
+  })
+
+  const data = await res.json()
+
   document.getElementById("nama").value = data.nama || ""
   document.getElementById("email").value = data.email || ""
   document.getElementById("gender").value = data.gender || ""
@@ -72,18 +294,173 @@ async function loadProfile() {
   document.getElementById("location").value = data.location || ""
   document.getElementById("education_level").value = data.education_level || ""
   document.getElementById("years_of_experience").value = data.years_of_experience || ""
-  document.getElementById("monthly_salary_exp").value = data.monthly_salary_exp || ""
+
+  const salary = data.monthly_salary_exp || ""
+  document.getElementById("monthly_salary_exp").value = salary
+  document.getElementById("monthly_salary_exp_text").innerText = salary || "-"
+
   document.getElementById("job_interest").value = data.job_interest || ""
   document.getElementById("bio").value = data.bio || ""
   document.getElementById("skillInput").value = data.skill || ""
   document.getElementById("work_pre").value = data.work_pre || ""
-  updatePreview("resumePreview", data.resume, "Lihat Resume")
-  updatePreview("certPreview", data.certificates, "Lihat Certificate")
-  updatePreview("attachPreview", data.attachments, "Lihat Attachment")
+  if (data.resume) {
+    document.getElementById("resumePreview").href = data.resume
+    document.getElementById("resumePreview").innerText = "📄 Lihat Resume"
+  } else {
+    document.getElementById("resumePreview").innerText = ""
+  }
+
+  if (data.certificates) {
+    document.getElementById("certPreview").href = data.certificates
+    document.getElementById("certPreview").innerText = "📜 Lihat Certificate"
+  } else {
+    document.getElementById("certPreview").innerText = ""
+  }
+
+  if (data.attachments) {
+    document.getElementById("attachPreview").href = data.attachments
+    document.getElementById("attachPreview").innerText = "📎 Lihat Attachment"
+  } else {
+    document.getElementById("attachPreview").innerText = ""
+  }
+
+  if (data.resume) {
+    const name = data.resume.split("/").pop()
+    document.getElementById("resumeName").innerText = name
+  }
+
+  if (data.certificates) {
+    const name = data.certificates.split("/").pop()
+    document.getElementById("certName").innerText = name
+  }
+
+  if (data.attachments) {
+    const name = data.attachments.split("/").pop()
+    document.getElementById("attachName").innerText = name
+  }
+  document.getElementById("namaText").innerText = data.nama || "Freelancer"
+  document.getElementById("locationText").innerText = "📍 " + (data.location || "-")
+  document.getElementById("expText").innerText = "💼 " + (data.years_of_experience || 0) + " Tahun"
+  document.getElementById("job_interestText").innerText = data.job_interest || "-"
+
+
+  if (openTab === "history") {
+    showSection("history")
+  }
+}
+
+
+async function loadApplications() {
+  const res = await fetch("/freelancer/applications", {
+    headers: { "Authorization": "Bearer " + token }
+  })
+
+  const data = await res.json()
+
+  let html = ""
+
+  data.forEach(app => {
+
+
+    const job = app.job || app.Job || {}
+
+    let finalStatus = app.status
+
+
+    if (job.status === "dihapus") {
+      finalStatus = "ditolak (job dihapus)"
+    }
+
+    if (job.status === "ditutup") {
+      finalStatus = "pending"
+    }
+
+    if (app.status === "withdrawn") {
+      finalStatus = "withdrawn"
+    }
+
+    if (app.status === "accepted") {
+      finalStatus = "accepted"
+    }
+
+    const canWithdraw = app.status === "pending" && job.status !== "dihapus" && job.status !== "ditutup"
+
+    html += `
+      <div id="app-${app.id}" class="border rounded p-4">
+
+  
+        <p class="font-bold">
+          ${job.judul ? job.judul : "Job Tidak Tersedia"}
+        </p>
+
+   
+        <p class="text-sm text-gray-600">
+          Status: <b>${finalStatus}</b>
+        </p>
+
+        <p class="text-xs text-gray-500">
+          Tanggal: ${new Date(app.tanggal_daftar).toLocaleString()}
+        </p>
+
+        ${canWithdraw ? `
+          <button
+            onclick="withdrawJob(${app.job_id})"
+            class="mt-2 px-3 py-1 bg-red-500 text-white rounded">
+            Mengundurkan Diri
+          </button>
+        ` : `
+          <span class="text-xs text-gray-400">Tidak bisa diubah</span>
+        `}
+      </div>
+    `
+  })
+
+  document.getElementById("applicationList").innerHTML = html
+}
+
+async function withdrawJob(jobId) {
+
+  const confirmWithdraw = confirm("Yakin ingin mengundurkan diri?")
+  if (!confirmWithdraw) return
+
+  const res = await fetch("/freelancer/withdraw", {
+    method: "POST",
+    headers: {
+      "Authorization": "Bearer " + token,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      job_id: jobId
+    })
+  })
+
+  const data = await res.json()
+
+  if (!res.ok) {
+    alert(data.error || "Gagal withdraw")
+    return
+  }
+
+  alert("Berhasil mengundurkan diri")
+
+  loadApplications()
+}
+
+
+function enableEdit() {
+  document.querySelectorAll("input, textarea, select").forEach(el => el.disabled = false)
+  document.getElementById("saveBtn").classList.remove("hidden")
+}
+
+function cancelEdit() {
+  document.querySelectorAll("input, textarea, select").forEach(el => el.disabled = true)
+  document.getElementById("saveBtn").classList.add("hidden")
+  loadProfile()
 }
 
 async function updateProfile() {
   const formData = new FormData()
+
   formData.append("nama", document.getElementById("nama").value)
   formData.append("gender", document.getElementById("gender").value)
   formData.append("age", document.getElementById("age").value)
@@ -96,42 +473,42 @@ async function updateProfile() {
   formData.append("skill", document.getElementById("skillInput").value)
   formData.append("work_pre", document.getElementById("work_pre").value)
 
-  const resumeFile = document.getElementById("resume").files[0]
-  const certificateFile = document.getElementById("certificates").files[0]
-  const attachmentFile = document.getElementById("attachments").files[0]
 
-  if (resumeFile) {
-    formData.append("resume", resumeFile)
-  }
-  if (certificateFile) {
-    formData.append("certificates", certificateFile)
-  }
-  if (attachmentFile) {
-    formData.append("attachments", attachmentFile)
-  }
+  formData.append("resume", document.getElementById("resume").files[0])
+  formData.append("certificates", document.getElementById("certificates").files[0])
+  formData.append("attachments", document.getElementById("attachments").files[0])
 
-  const response = await fetch("/freelancer/profile", {
+  await fetch("/freelancer/profile", {
     method: "PUT",
-    body: formData,
+    headers: {
+      "Authorization": "Bearer " + token
+    },
+    body: formData
   })
 
-  const result = await response.json()
-  alert(result.msg || result.error || "Profile updated")
-  loadProfile()
+  alert("Profile updated")
 }
 
-function updatePreview(elementID, href, label) {
-  const link = document.getElementById(elementID)
-  if (!href) {
-    link.removeAttribute("href")
-    link.innerText = ""
-    return
-  }
-  link.href = href
-  link.innerText = label
-}
+document.getElementById("resume").addEventListener("change", function () {
+  const fileName = this.files[0]?.name || "No file chosen"
+  document.getElementById("resumeName").innerText = fileName
+})
+
+
+document.getElementById("certificates").addEventListener("change", function () {
+  const fileName = this.files[0]?.name || "No file chosen"
+  document.getElementById("certName").innerText = fileName
+})
+
+
+document.getElementById("attachments").addEventListener("change", function () {
+  const fileName = this.files[0]?.name || "No file chosen"
+  document.getElementById("attachName").innerText = fileName
+})
 
 loadProfile()
+
 </script>
+
 </body>
 </html>

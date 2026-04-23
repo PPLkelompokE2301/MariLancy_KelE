@@ -5,67 +5,378 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Freelancer Dashboard - MariLancy</title>
-<link rel="stylesheet" href="/static/css/style.css">
-</head>
-<body>
-<main class="page-shell">
-  <!-- Author: Hanif -->
-  <!-- PBI: KF-13 -->
-  <!-- Sprint: Sprint 1 -->
-  <section class="page-hero">
-    <p class="eyebrow">KF-13</p>
-    <h1>Dashboard Freelancer</h1>
-    <p>Ringkasan profil freelancer yang terhubung langsung ke halaman kelola profil.</p>
-  </section>
+<title>Freelancer Dashboard</title>
 
-  <!-- Author: Hanif -->
-  <!-- PBI: KF-13 -->
-  <!-- Sprint: Sprint 1 -->
-  <section class="card">
-    <div class="section-head">
-      <div>
-        <h2>Ringkasan Profil</h2>
-        <p id="freelancerSubtitle">Memuat data freelancer...</p>
-      </div>
-      <a class="button-link" href="/freelancer/profile/view">Kelola Profil</a>
-    </div>
-
-    <div class="stats-grid compact">
-      <article class="stat-box">
-        <span>Nama</span>
-        <strong id="freelancerName">-</strong>
-      </article>
-      <article class="stat-box">
-        <span>Lokasi</span>
-        <strong id="freelancerLocation">-</strong>
-      </article>
-      <article class="stat-box">
-        <span>Minat Kerja</span>
-        <strong id="freelancerInterest">-</strong>
-      </article>
-      <article class="stat-box">
-        <span>Skill</span>
-        <strong id="freelancerSkill">-</strong>
-      </article>
-    </div>
-  </section>
-</main>
-
-<!-- Author: Hanif -->
-<!-- PBI: KF-13 -->
-<!-- Sprint: Sprint 1 -->
-<script>
-async function loadFreelancerSummary() {
-  const data = await fetch("/freelancer/profile").then((response) => response.json())
-  document.getElementById("freelancerName").innerText = data.nama || "-"
-  document.getElementById("freelancerLocation").innerText = data.location || "-"
-  document.getElementById("freelancerInterest").innerText = data.job_interest || "-"
-  document.getElementById("freelancerSkill").innerText = data.skill || "-"
-  document.getElementById("freelancerSubtitle").innerText = data.email || "Belum ada email tersimpan"
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="/static/css/style.css?v=<?= timestamp ?>">
+<style>
+.input {
+  border: 1px solid #ddd;
+  padding: 10px;
+  border-radius: 8px;
+  width: 100%;
 }
 
-loadFreelancerSummary()
+.job-card {
+  border: 1px solid #eee;
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.job-card:hover {
+  background: #f9fafb;
+  transform: scale(1.01);
+}
+
+.job-card.active {
+  border: 2px solid #3b82f6;
+  background: #eff6ff;
+}
+</style>
+</head>
+
+<body class="bg-gray-100">
+
+<nav class="navbar-custom">
+  <div class="navbar-inner">
+    <a class="logo" href="/freelancer">MariLancy</a>
+
+    <div class="nav-menu" id="navbarNav">
+      <ul>
+        <li><a class="nav-link-underline" href="/freelancer">Dashboard</a></li>
+        <li><a class="nav-link-underline" href="#projects">Projects</a></li>
+        <li><a class="nav-link-underline" href="#jobs">Jobs</a></li>
+        <li><a class="nav-link-underline" href="#message">Messages</a></li>
+      </ul>
+    </div>
+
+    <div class="relative cursor-pointer" onclick="goNotification()">
+      <span class="text-2xl">🔔</span>
+
+      
+      <span id="notifBadge"
+        class="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full hidden">
+        0
+      </span>
+    </div>
+
+    <div class="profile-box" onclick="goProfile()">
+      <img id="profile_img"
+        src="https://ui-avatars.com/api/?name=User"
+        class="profile-img">
+    </div>
+
+    <button onclick="logout()"
+      class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg text-sm">
+      🚪 Logout
+    </button>
+  </div>
+</nav>
+
+<section class="section-padding max-w-6xl mx-auto mt-10" id="jobs">
+  <div class="flex gap-6">
+
+  
+    <div class="w-1/3 bg-white p-4 rounded-xl shadow">
+      <h2 class="text-xl font-bold mb-4">Daftar Job</h2>
+      <div id="jobList"></div>
+    </div>
+
+    <div class="w-2/3 bg-white p-6 rounded-xl shadow">
+      <h2 class="text-xl font-bold mb-4">Preview Job</h2>
+      <div id="jobPreview" class="text-gray-700">
+        <p class="text-gray-400">Pilih job untuk melihat detail</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<script>
+
+const token = localStorage.getItem("token")
+const role = localStorage.getItem("role")
+
+if (!token) {
+  alert("Silakan login dulu")
+  window.location.href = "/"
+}
+
+if (role !== "freelancer") {
+  alert("Akses ditolak (bukan freelancer)")
+  window.location.href = "/"
+}
+
+
+let globalJobs = []
+let myApplications = []
+
+
+async function safeFetch(url, options = {}) {
+  const res = await fetch(url, options)
+
+  if (res.status === 401) {
+    alert("Session habis")
+    localStorage.clear()
+    window.location.href = "/"
+    return null
+  }
+
+  if (res.status === 403) {
+    alert("Akses ditolak")
+    window.location.href = "/"
+    return null
+  }
+
+  return await res.json()
+}
+
+
+async function loadMyApplications() {
+  const res = await safeFetch("/freelancer/applications", {
+    headers: {
+      "Authorization": "Bearer " + token
+    }
+  })
+
+  if (!res) return
+  myApplications = res
+}
+
+
+async function applyFromDashboard(jobId) {
+
+  const profile = await safeFetch("/freelancer/profile", {
+    headers: {
+      "Authorization": "Bearer " + token
+    }
+  })
+
+  if (!profile) return
+
+  if (!profile.resume || !profile.certificates) {
+    alert("Lengkapi resume & certificates dulu!")
+    window.location.href = "/freelancer/profile/view"
+    return
+  }
+
+  const result = await safeFetch("/freelancer/apply", {
+    method: "POST",
+    headers: {
+      "Authorization": "Bearer " + token,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ job_id: parseInt(jobId) })
+  })
+
+  if (!result) {
+    alert("Gagal melamar job")
+    return
+  }
+
+  alert(result.message || "Berhasil melamar job!")
+
+  await loadMyApplications()
+  renderPreview(globalJobs.find(j => j.id == jobId))
+}
+
+
+function renderPreview(job) {
+  if (!job) return
+  if (job.status === "dihapus") return
+
+  const alreadyApplied = myApplications.some(app => app.job_id == job.id)
+
+  const isClosed = job.status === "ditutup"
+  const isDeleted = job.status === "dihapus"
+
+  document.getElementById("jobPreview").innerHTML = `
+    <div class="flex justify-between items-start">
+      <h3 class="text-2xl font-bold">${job.judul}</h3>
+      <span class="text-xs px-2 py-1 bg-gray-200 rounded">${job.status || "-"}</span>
+    </div>
+
+    <p class="text-sm text-gray-500 mb-4">
+      ${job.client?.nama_client || "-"}
+    </p>
+
+    <div class="flex gap-2 flex-wrap mb-4">
+      <span class="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded">${job.kategori || "-"}</span>
+      <span class="text-xs bg-purple-100 text-purple-600 px-2 py-1 rounded">${job.level || "-"}</span>
+      <span class="text-xs bg-green-100 text-green-600 px-2 py-1 rounded">${job.tipe || "-"}</span>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4 text-sm mb-4">
+      <div><b>Deskripsi</b><p>${job.job_desc || "-"}</p></div>
+      <div><b>Kebutuhan</b><p>${job.kebutuhan_proyek || "-"}</p></div>
+      <div><b>Skill</b><p>${job.kebutuhan_skill || "-"}</p></div>
+      <div><b>Budget</b><p>Rp ${job.budget?.toLocaleString() || 0}</p></div>
+      <div><b>Pendidikan</b><p>${job.batas_pendidikan || "-"}</p></div>
+      <div><b>Pengalaman</b><p>${job.pengalaman_kerja || "-"}</p></div>
+      <div><b>Lokasi</b><p>${job.lokasi_pelaksanaan || "-"}</p></div>
+      <div>
+        <b>Tags</b>
+        <div id="tagPreviewContainer"></div>
+      </div>
+    </div>
+
+    
+    <div class="text-xs text-gray-400 mb-4">
+      Dibuat: ${job.created_at ? new Date(job.created_at).toLocaleDateString("id-ID") : "-"}
+    </div>
+
+    <div class="flex gap-3">
+      <button 
+        onclick="applyFromDashboard(${job.id})"
+        ${alreadyApplied || isClosed || isDeleted ? "disabled" : ""}
+        class="px-4 py-2 rounded ${
+          alreadyApplied || isClosed || isDeleted
+            ? "bg-gray-400 cursor-not-allowed"
+            : "bg-green-500 text-white hover:bg-green-600"
+        }">
+        
+        ${
+          isDeleted
+            ? "Job Tidak Tersedia"
+            : isClosed
+              ? "Job Ditutup"
+              : alreadyApplied
+                ? "Sudah Melamar"
+                : "Lamar Job"
+        }
+      </button>
+    </div>
+  `
+  renderTagsPreview(job.tags)
+}
+
+function renderTagsPreview(tagsData) {
+  const container = document.getElementById("tagPreviewContainer")
+  if (!container) return
+
+  let tags = []
+
+  try {
+    if (Array.isArray(tagsData)) {
+      tags = tagsData
+    } else if (typeof tagsData === "string") {
+      tags = JSON.parse(tagsData)
+    }
+  } catch (e) {
+    tags = []
+  }
+
+  container.innerHTML = tags.map(tag => `
+    <span style="
+      display:inline-block;
+      padding:4px 10px;
+      margin:3px;
+      border-radius:999px;
+      font-size:11px;
+      background:#ede9fe;
+      color:#6d28d9;
+      font-weight:500;
+    ">
+      ${tag}
+    </span>
+  `).join("")
+}
+
+async function loadNotificationCount() {
+  const res = await safeFetch("/freelancer/applications", {
+    headers: {
+      "Authorization": "Bearer " + token
+    }
+  })
+
+  if (!res) return
+
+
+  const updated = res.filter(app =>
+    app.status === "accepted" || app.status === "rejected"
+  )
+
+  const badge = document.getElementById("notifBadge")
+
+  if (updated.length > 0) {
+    badge.innerText = updated.length
+    badge.classList.remove("hidden")
+  } else {
+    badge.classList.add("hidden")
+  }
+}
+
+
+async function loadJobs() {
+  const jobs = await safeFetch("/jobs")
+  if (!jobs) return
+
+  globalJobs = jobs.filter(job =>
+    job.status !== "dihapus" &&
+    job.status !== "ditutup"
+  )
+
+  let html = ""
+
+  globalJobs.forEach((job, index) => {
+    html += `
+      <div class="job-card ${index === 0 ? "active" : ""}"
+           onclick="selectJob(${job.id}, this)">
+        <h3 class="font-bold">${job.judul}</h3>
+        <p class="text-sm text-gray-500">
+          Budget: ${job.budget || 0}
+        </p>
+
+        <p class="text-xs text-blue-500 mt-1">
+          👥 ${job.applications_count ?? 0} Pelamar
+        </p>
+      </div>
+    `
+  })
+
+  document.getElementById("jobList").innerHTML = html
+
+  if (globalJobs.length > 0) {
+    renderPreview(globalJobs[0])
+  }
+}
+
+
+function selectJob(id, el) {
+  const job = globalJobs.find(j => j.id === id)
+  if (!job) return
+
+  document.querySelectorAll(".job-card").forEach(el => {
+    el.classList.remove("active")
+  })
+
+  if (el) el.classList.add("active")
+
+  renderPreview(job)
+}
+
+
+function goProfile() {
+  window.location.href = "/freelancer/profile/view"
+}
+
+function logout() {
+  localStorage.clear()
+  window.location.href = "/"
+}
+function goNotification() {
+  window.location.href = "/freelancer/notification"
+}
+
+
+loadJobs().then(() => {
+  loadMyApplications().then(loadNotificationCount)
+})
+
 </script>
+
 </body>
 </html>
