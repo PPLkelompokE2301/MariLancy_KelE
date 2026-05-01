@@ -1,102 +1,87 @@
-// Author: Aura
-// PBI: KF-07
-
-// Author: Danu
-// PBI: KF-06
-// Sprint: Sprint 1
-
 package controllers
 
 import (
+	"net/http"
+
 	"marilancy/config"
 	"marilancy/models"
 
 	"github.com/gin-gonic/gin"
 )
-func GetJobApplicants(c *gin.Context) {
 
-	jobID := c.Param("id")
-
+// Author: Arga
+// PBI: KF-05
+// Sprint: Sprint 1
+func ApplyJob(c *gin.Context) {
 	userID, ok := getUserID(c)
 	if !ok {
-		c.JSON(401, gin.H{"error": "Unauthorized"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	var input struct {
+		JobID uint `json:"job_id"`
+	}
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Input tidak valid"})
+		return
+	}
+
+	var freelancer models.Freelancer
+	if err := config.DB.First(&freelancer, userID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Freelancer tidak ditemukan"})
+		return
+	}
+	if freelancer.Resume == "" || freelancer.Certificates == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Lengkapi resume & certificates dulu"})
 		return
 	}
 
 	var job models.Job
-	if err := config.DB.First(&job, jobID).Error; err != nil {
-		c.JSON(404, gin.H{"error": "Job tidak ditemukan"})
+	if err := config.DB.First(&job, input.JobID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Job tidak ditemukan"})
+		return
+	}
+	if job.Status == "dihapus" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Job sudah dihapus"})
+		return
+	}
+	if job.Status == "ditutup" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Job sudah ditutup"})
 		return
 	}
 
-	if job.ClientID != userID {
-		c.JSON(403, gin.H{"error": "Tidak bisa lihat pelamar job orang lain"})
+	var existing models.Application
+	err := config.DB.Where("freelancer_id = ? AND job_id = ?", userID, input.JobID).First(&existing).Error
+
+	if err == nil {
+
+		if existing.Status == "withdrawn" {
+			existing.Status = "pending"
+
+			if err := config.DB.Save(&existing).Error; err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal re-apply"})
+				return
+			}
+			c.JSON(http.StatusOK, gin.H{"message": "Berhasil melamar ulang job"})
+			return
+		}
+
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Sudah pernah melamar job ini"})
 		return
 	}
 
-	var apps []models.Application
+	app := models.Application{
+		FreelancerID: userID,
+		JobID:        input.JobID,
+		Status:       "pending",
+	}
 
-	err := config.DB.
-		Preload("Freelancer").
-		Where("job_id = ?", jobID).
-		Order("tanggal_daftar desc").
-		Find(&apps).Error
-
-	if err != nil {
-		c.JSON(500, gin.H{"error": "Gagal ambil pelamar"})
+	if err := config.DB.Create(&app).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal melamar"})
 		return
 	}
 
-	c.JSON(200, apps)
-}
-
-// Author: Aura
-// PBI: KF-07
-// Sprint: Sprint 1
-func UpdateApplicationStatus(c *gin.Context) {
-
-	var input struct {
-		ApplicationID uint   `json:"application_id"`
-		Status        string `json:"status"`
-	}
-
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(400, gin.H{"error": "Invalid input"})
-		return
-	}
-
-	validStatus := map[string]bool{
-		"pending":  true,
-		"accepted": true,
-		"rejected": true,
-	}
-
-	if !validStatus[input.Status] {
-		c.JSON(400, gin.H{"error": "Status tidak valid"})
-		return
-	}
-
-	var app models.Application
-
-	if err := config.DB.First(&app, input.ApplicationID).Error; err != nil {
-		c.JSON(404, gin.H{"error": "Application not found"})
-		return
-	}
-
-	if app.Status == "accepted" || app.Status == "rejected" {
-		c.JSON(400, gin.H{"error": "Status sudah final, tidak bisa diubah"})
-		return
-	}
-
-	app.Status = input.Status
-
-	if err := config.DB.Save(&app).Error; err != nil {
-		c.JSON(500, gin.H{"error": "Gagal update status"})
-		return
-	}
-
-	c.JSON(200, gin.H{
-		"message": "Status updated",
-		"data":    app,
-	})
+	c.JSON(http.StatusOK, gin.H{"message": "Berhasil melamar job"})
 }
