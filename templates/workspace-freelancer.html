@@ -324,34 +324,6 @@
 
     setActiveByURL();
 
-    function validateCompletionRules() {
-      const btnComplete = document.getElementById("btnCompleteProject");
-      const linkVal = document.getElementById("submissionLink").value.trim();
-      const fileVal = document.getElementById("submissionFile").files.length;
-
-      if (isProjectCompleted) {
-          btnComplete.innerText = "Telah Diselesaikan \u2714";
-          btnComplete.className = "px-5 py-2.5 bg-green-500 text-white rounded-xl text-sm font-bold shadow-sm cursor-not-allowed";
-          btnComplete.disabled = true;
-          return;
-      }
-
-      if (currentProgress === 100 && tasks.length > 0) {
-          if (linkVal !== "" || fileVal > 0) {
-              btnComplete.innerText = "Selesaikan Proyek";
-              btnComplete.className = "px-5 py-2.5 bg-[#2b9c96] hover:bg-[#23827d] text-white rounded-xl text-sm font-bold shadow-md cursor-pointer hover:-translate-y-0.5 transition-all";
-              btnComplete.disabled = false;
-          } else {
-              btnComplete.innerText = "Isi Link / Upload File";
-              btnComplete.className = "px-5 py-2.5 bg-yellow-500 text-white rounded-xl text-sm font-bold shadow-sm cursor-not-allowed";
-              btnComplete.disabled = true;
-          }
-      } else {
-          btnComplete.innerText = "Menunggu Task 100%";
-          btnComplete.className = "px-5 py-2.5 bg-gray-300 text-white rounded-xl text-sm font-bold shadow-sm cursor-not-allowed";
-          btnComplete.disabled = true;
-      }
-    }
 
     async function loadUserProfile() {
         try {

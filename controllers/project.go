@@ -14,6 +14,33 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func GetProjectDetail(c *gin.Context) {
+	projectID := c.Param("id")
+	var project models.Project
+
+	if err := config.DB.Preload("Job").Preload("Client").Preload("Freelancer").Preload("Tasks").Where("id = ?", projectID).First(&project).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Project tidak ditemukan"})
+		return
+	}
+
+	totalTasks := len(project.Tasks)
+	completedTasks := 0
+	for _, task := range project.Tasks {
+		if task.Status == "done" {
+			completedTasks++
+		}
+	}
+
+	progress := 0
+	if totalTasks > 0 {
+		progress = (completedTasks * 100) / totalTasks
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"project":  project,
+		"progress": progress,
+	})
+}
 
 func CreateTask(c *gin.Context) {
 	var input struct {
@@ -40,6 +67,130 @@ func CreateTask(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Task ditambahkan", "task": task})
 }
 
+func UpdateTaskStatus(c *gin.Context) {
+	taskID := c.Param("task_id")
+	var input struct {
+		Status string `json:"status"`
+	}
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := config.DB.Model(&models.Task{}).Where("id = ?", taskID).Update("status", input.Status).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal update task"})
+		return
+	}
+
+	var task models.Task
+	if err := config.DB.First(&task, taskID).Error; err != nil {
+		c.JSON(http.StatusOK, gin.H{"message": "Status task diperbarui"})
+		return
+	}
+
+	var project models.Project
+	if err := config.DB.Preload("Tasks").First(&project, task.ProjectID).Error; err == nil {
+
+		totalTasks := len(project.Tasks)
+		completedTasks := 0
+		for _, t := range project.Tasks {
+			if t.Status == "done" {
+				completedTasks++
+			}
+		}
+
+		newProgress := 0
+		if totalTasks > 0 {
+			newProgress = (completedTasks * 100) / totalTasks
+		}
+
+		newStatus := project.Status
+		if newProgress > 0 && newProgress < 100 && project.Status == "active" {
+			newStatus = "inprogress"
+		} else if newProgress == 0 && project.Status == "inprogress" {
+			newStatus = "active" 
+		}
+
+		config.DB.Model(&models.Project{}).Where("id = ?", project.ID).Updates(map[string]interface{}{
+			"progress": newProgress,
+			"status":   newStatus,
+		})
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Status diperbarui"})
+}
+
+func CompleteProject(c *gin.Context) {
+	projectID := c.Param("id")
+
+	var project models.Project
+	if err := config.DB.Preload("Tasks").Where("id = ?", projectID).First(&project).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Project tidak ditemukan"})
+		return
+	}
+
+	totalTasks := len(project.Tasks)
+	completedTasks := 0
+	for _, task := range project.Tasks {
+		if task.Status == "done" {
+			completedTasks++
+		}
+	}
+
+	if totalTasks == 0 || completedTasks < totalTasks {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Semua task harus selesai 100% terlebih dahulu!"})
+		return
+	}
+
+	link := c.PostForm("submission_link")
+	file, errFile := c.FormFile("submission_file")
+
+	if link == "" && errFile != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Harap sertakan link atau upload file hasil kerja!"})
+		return
+	}
+
+	if errFile == nil {
+		fileName := fmt.Sprintf("%d_%s", time.Now().Unix(), filepath.Base(file.Filename))
+		savePath := filepath.Join("uploads", fileName)
+
+		if err := c.SaveUploadedFile(file, savePath); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menyimpan file hasil kerja"})
+			return
+		}
+		project.SubmissionFile = "/" + filepath.ToSlash(savePath)
+	}
+
+	project.SubmissionLink = link
+	project.Status = "completed"
+
+	if err := config.DB.Save(&project).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menyelesaikan proyek"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Proyek berhasil diselesaikan"})
+}
+
+func RequestRevision(c *gin.Context) {
+	projectID := c.Param("id")
+
+	var project models.Project
+	if err := config.DB.Where("id = ?", projectID).First(&project).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Project tidak ditemukan"})
+		return
+	}
+
+	project.Status = "active"
+
+	if err := config.DB.Save(&project).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal meminta pengiriman ulang"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Proyek dibuka kembali untuk revisi"})
+}
 
 func DeleteTask(c *gin.Context) {
 	taskID := c.Param("task_id")
@@ -70,5 +221,107 @@ func UpdateTaskTitle(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Judul task diperbarui"})
 }
+func UpdateTaskPriority(c *gin.Context) {
+	taskID := c.Param("task_id")
+	var input struct {
+		Priority string `json:"priority"`
+	}
 
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(400, gin.H{"error": "Invalid input"})
+		return
+	}
 
+	if err := config.DB.Model(&models.Task{}).Where("id = ?", taskID).Update("priority", input.Priority).Error; err != nil {
+		c.JSON(500, gin.H{"error": "Gagal update prioritas"})
+		return
+	}
+
+	c.JSON(200, gin.H{"message": "Prioritas diperbarui"})
+}
+
+func UpdateProjectDeadline(c *gin.Context) {
+	projectID := c.Param("id")
+	var input struct {
+		StartDate string `json:"start_date"`
+		EndDate   string `json:"end_date"`
+	}
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Format data tidak valid"})
+		return
+	}
+
+	start, _ := time.Parse("2006-01-02", input.StartDate)
+	end, _ := time.Parse("2006-01-02", input.EndDate)
+
+	if err := config.DB.Model(&models.Project{}).Where("id = ?", projectID).Updates(map[string]interface{}{
+		"start_date": start,
+		"end_date":   end,
+	}).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal memperbarui deadline"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Deadline proyek berhasil diatur"})
+}
+
+func CancelProject(c *gin.Context) {
+	projectID := c.Param("id")
+
+	userID, ok := getUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	var project models.Project
+	if err := config.DB.Where("id = ?", projectID).First(&project).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Project tidak ditemukan"})
+		return
+	}
+
+	if project.ClientID != userID {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Anda tidak memiliki hak untuk membatalkan proyek ini"})
+		return
+	}
+
+	if project.Status == "completed" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Proyek sudah selesai, tidak dapat dibatalkan"})
+		return
+	}
+	if project.Status == "dibatalkan" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Proyek ini sudah dibatalkan sebelumnya"})
+		return
+	}
+
+	if project.EndDate == nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Batas waktu (due date) proyek belum diatur."})
+		return
+	}
+
+	if time.Now().Before(*project.EndDate) {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": fmt.Sprintf("Proyek belum melewati batas waktu. Batas waktu pengerjaan proyek adalah hingga %s.", (*project.EndDate).Format("02-01-2006")),
+		})
+		return
+	}
+
+	project.Status = "dibatalkan"
+	if err := config.DB.Save(&project).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal memperbarui status pembatalan proyek"})
+		return
+	}
+
+	if project.JobID != 0 {
+		if err := config.DB.Model(&models.Job{}).Where("id = ?", project.JobID).Update("status", "dibuka").Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Proyek dibatalkan, tetapi gagal membuka kembali lowongan kerja"})
+			return
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Proyek berhasil dibatalkan karena melewati batas waktu pengerjaan. Status lowongan telah dibuka kembali.",
+		"data":    project,
+	})
+}
