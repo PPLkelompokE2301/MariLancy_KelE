@@ -1,71 +1,632 @@
-<!-- Author: Hanif -->
-<!-- PBI: KF-13 -->
-<!-- Sprint: Sprint 1 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Freelancer Dashboard - MariLancy</title>
-<link rel="stylesheet" href="/static/css/style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Freelancer Dashboard - MariLancy</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #f8fafc;
+    }
+
+    .sidebar-scroll::-webkit-scrollbar {
+      width: 5px;
+    }
+    .sidebar-scroll::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 10px;
+    }
+
+    .custom-checkbox {
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+      border: 1px solid #cbd5e1;
+      cursor: pointer;
+    }
+
+    .job-card-modern {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 20px;
+      border: 1px solid #f1f5f9;
+      box-shadow: 0 2px 15px rgba(0, 0, 0, 0.02);
+      transition: 0.3s;
+    }
+
+    .job-card-modern:hover {
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
+      border-color: #e2e8f0;
+    }
+
+    .btn-teal {
+      background-color: #2b9c96;
+      color: white;
+    }
+    .btn-teal:hover {
+      background-color: #23827d;
+    }
+
+    .footer-dark {
+      background-color: #000000;
+      color: #e5e7eb;
+      padding: 60px 40px 30px 40px;
+      font-size: 14px;
+    }
+
+    .footer-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1.5fr;
+      gap: 40px;
+      padding-bottom: 40px;
+      border-bottom: 1px solid #1f2937;
+    }
+
+    .footer-col h4 {
+      color: white;
+      font-weight: 600;
+      font-size: 16px;
+      margin-bottom: 20px;
+    }
+
+    .footer-col ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .footer-col ul li {
+      margin-bottom: 12px;
+      color: #9ca3af;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .footer-col ul li:hover {
+      color: white;
+    }
+
+    .newsletter-form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .newsletter-input {
+      background-color: transparent;
+      border: 1px solid #4b5563;
+      color: white;
+      padding: 12px 15px;
+      border-radius: 8px;
+      font-size: 13px;
+      outline: none;
+    }
+
+    .newsletter-input:focus {
+      border-color: #2b9c96;
+    }
+
+    .newsletter-btn {
+      background-color: #2b9c96;
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .newsletter-btn:hover {
+      background-color: #23827d;
+    }
+
+    .footer-bottom {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding-top: 20px;
+      display: flex;
+      justify-content: space-between;
+      color: #6b7280;
+      font-size: 12px;
+    }
+
+    .pagination-container { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 24px; }
+    .page-btn { width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center; background-color: white; color: #4b5563; font-weight: 700; font-size: 14px; cursor: pointer; transition: 0.2s; border: 1px solid #e5e7eb; }
+    .page-btn:hover:not(.disabled):not(.active) { background-color: #f3f4f6; }
+    .page-btn.active { background: #2b9c96; color: white; border: none; }
+    .page-btn.disabled { opacity: 0.4; cursor: not-allowed; }
+    .page-dots { color: #9ca3af; font-weight: bold; }
+
+    .pagination-container { 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      gap: 8px; 
+      margin-top: 24px; 
+      padding-bottom: 20px;
+    }
+    .page-btn { 
+      width: 40px; height: 40px; border-radius: 50%; 
+      display: flex; justify-content: center; align-items: center; 
+      background-color: white; color: #4b5563; font-weight: 700; 
+      font-size: 14px; cursor: pointer; transition: 0.2s; 
+      border: 1px solid #e5e7eb;
+      position: relative; /* Tambahkan ini */
+      z-index: 10;        /* Tambahkan ini */
+    }
+    
+  </style>
 </head>
+
 <body>
-<main class="page-shell">
-  <!-- Author: Hanif -->
-  <!-- PBI: KF-13 -->
-  <!-- Sprint: Sprint 1 -->
-  <section class="page-hero">
-    <p class="eyebrow">KF-13</p>
-    <h1>Dashboard Freelancer</h1>
-    <p>Ringkasan profil freelancer yang terhubung langsung ke halaman kelola profil.</p>
-  </section>
 
-  <!-- Author: Hanif -->
-  <!-- PBI: KF-13 -->
-  <!-- Sprint: Sprint 1 -->
-  <section class="card">
-    <div class="section-head">
-      <div>
-        <h2>Ringkasan Profil</h2>
-        <p id="freelancerSubtitle">Memuat data freelancer...</p>
+  <nav class="fixed top-0 left-0 w-full z-50 bg-black text-white px-8 py-4 flex justify-between items-center">
+    <div class="flex-1">
+      <a class="text-xl font-bold flex items-center gap-2" href="/freelancer">
+        <i class="ri-briefcase-4-line text-2xl"></i> MariLancy
+      </a>
+    </div>
+
+    <div class="flex-1 flex justify-center gap-8 text-sm font-medium">
+      <a href="#" onclick="setActive(this); goHome()" class="text-white border-b-2 border-[#2b9c96] pb-1 font-semibold">Dashboard</a>
+      <a href="/freelancer/projects" onclick="setActive(this)" class="nav-link text-gray-400 hover:text-white">Projects</a>
+      <a href="/freelancer/profile/view" onclick="setActive(this)" class="nav-link text-gray-400 hover:text-white">Applications</a>
+      <a href="/chat" onclick="setActive(this)" class="nav-link text-gray-400 hover:text-white">Messages</a>
+    </div>
+
+    <div class="flex-1 flex justify-end items-center gap-5 ">
+      <span id="userGreeting" class="text-sm font-medium"></span>
+      <div class="profile-box cursor-pointer" onclick="goProfile()">
+        <img id="profile_img"
+          src="https://ui-avatars.com/api/?name=User"
+          class="profile-img w-10 h-10 rounded-full object-cover"
+          alt="User"
+          onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=User&background=2b9c96&color=fff';">
       </div>
-      <a class="button-link" href="/freelancer/profile/view">Kelola Profil</a>
+      <button onclick="logout()" class="btn-teal px-5 py-2 rounded-md text-sm font-semibold transition">
+        Logout
+      </button>
+      <div class="relative cursor-pointer" onclick="goNotification()">
+        <i class="ri-notification-3-fill text-2xl text-yellow-500"></i>
+        <span id="notifBadge" class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0 rounded-full hidden">
+          0
+        </span>
+      </div>
+    </div>
+  </nav>
+
+  <div class="bg-black text-white text-center pt-32 pb-16 mb-8">
+    <h1 class="text-4xl font-bold">Daftar Proyek Freelance</h1>
+  </div>
+
+  <section class="max-w-7xl mx-auto px-4 pb-20 flex gap-8">
+    
+    <div class="w-1/4 bg-[#f4f7f7] p-5 rounded-2xl h-fit border border-gray-200">
+      
+      <div class="mb-6">
+        <label class="block text-sm font-bold text-gray-800 mb-2">Cari Proyek</label>
+        <div class="relative">
+          <i class="ri-search-line absolute left-3 top-2.5 text-gray-400"></i>
+          <input type="text" id="searchInput" onkeyup="applyFilters()" placeholder="Cari proyek, skill, klien" class="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:border-teal-500">
+        </div>
+      </div>
+
+      <div class="mb-6">
+        <label class="block text-sm font-bold text-gray-800 mb-2">Location</label>
+        <div class="relative">
+          <i class="ri-map-pin-line absolute left-3 top-2.5 text-gray-400"></i>
+          <select id="locationFilter" onchange="applyFilters()" class="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-300 text-sm appearance-none focus:outline-none focus:border-teal-500 text-gray-600">
+            <option>Lokasi</option>
+            <option>Aceh</option>
+            <option>Bali</option>
+            <option>Banten</option>
+            <option>Bengkulu</option>
+            <option>Daerah Istimewa Yogyakarta</option>
+            <option>Gorontalo</option>
+            <option>Jakarta Barat</option>
+            <option>Jakarta Pusat</option>
+            <option>Jakarta Selatan</option>
+            <option>Jakarta Timur</option>
+            <option>Jakarta Utara</option>
+            <option>Jambi</option>
+            <option>Jawa Barat</option>
+            <option>Jawa Tengah</option>
+            <option>Jawa Timur</option>
+            <option>Kalimantan Barat</option>
+            <option>Kalimantan Selatan</option>
+            <option>Kalimantan Tengah</option>
+            <option>Kalimantan Timur</option>
+            <option>Kalimantan Utara</option>
+            <option>Kepulauan Bangka Belitung</option>
+            <option>Kepulauan Riau</option>
+            <option>Lampung</option>
+            <option>Maluku</option>
+            <option>Maluku Utara</option>
+            <option>Nusa Tenggara Barat</option>
+            <option>Nusa Tenggara Timur</option>
+            <option>Papua</option>
+            <option>Papua Barat</option>
+            <option>Riau</option>
+            <option>Sulawesi Barat</option>
+            <option>Sulawesi Selatan</option>
+            <option>Sulawesi Tengah</option>
+            <option>Sulawesi Tenggara</option>
+            <option>Sulawesi Utara</option>
+            <option>Sumatera Barat</option>
+            <option>Sumatera Selatan</option>
+            <option>Sumatera Utara</option>
+          </select>
+          <i class="ri-arrow-down-s-line absolute right-3 top-2.5 text-gray-400"></i>
+        </div>
+      </div>
+
+      <div class="mb-6">
+        <label class="block text-sm font-bold text-gray-800 mb-2">Budget</label>
+        <div class="relative">
+          <i class="ri-wallet-3-line absolute left-3 top-2.5 text-gray-400"></i>
+          <select id="budgetFilter" onchange="applyFilters()" class="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-300 text-sm appearance-none focus:outline-none focus:border-teal-500 text-gray-600">
+            <option value="">Semua Budget</option>
+            <option value="100000-300000">100k - 300k</option>
+            <option value="300000-500000">300k - 500k</option>
+            <option value="500000-700000">500k - 700k</option>
+            <option value="700000-1000000">700k - 1 Juta</option>
+            <option value="1000000">> 1 Juta</option>
+          </select>
+          <i class="ri-arrow-down-s-line absolute right-3 top-2.5 text-gray-400"></i>
+        </div>
+      </div>
+
+      <div class="mb-6">
+        <label class="block text-sm font-bold text-gray-800 mb-3">Kategori Proyek</label>
+        <div class="space-y-2 text-sm text-gray-600 sidebar-scroll" style="max-height: 250px; overflow-y: auto; padding-right: 5px;">
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="Accounting" onchange="applyFilters()"> Accounting</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="Accounting">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="Administration" onchange="applyFilters()"> Administration</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="Administration">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="Advertising" onchange="applyFilters()"> Advertising</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="Advertising">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="Architecture" onchange="applyFilters()"> Architecture</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="Architecture">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="Arts / Creative" onchange="applyFilters()"> Arts / Creative</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="Arts / Creative">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="Banking / Finance" onchange="applyFilters()"> Banking / Finance</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="Banking / Finance">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="Beauty / Personal Care" onchange="applyFilters()"> Beauty / Personal Care</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="Beauty / Personal Care">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="Business Development" onchange="applyFilters()"> Business Development</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="Business Development">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="Customer Service" onchange="applyFilters()"> Customer Service</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="Customer Service">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="Construction" onchange="applyFilters()"> Construction</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="Construction">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="Consulting" onchange="applyFilters()"> Consulting</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="Consulting">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="Design" onchange="applyFilters()"> Design</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="Design">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="Digital Marketing" onchange="applyFilters()"> Digital Marketing</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="Digital Marketing">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="Education" onchange="applyFilters()"> Education</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="Education">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="Engineering" onchange="applyFilters()"> Engineering</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="Engineering">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="Entertainment" onchange="applyFilters()"> Entertainment</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="Entertainment">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="Event Management" onchange="applyFilters()"> Event Management</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="Event Management">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="Food & Beverage" onchange="applyFilters()"> Food & Beverage</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="Food & Beverage">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="General Management" onchange="applyFilters()"> General Management</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="General Management">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="Graphic Design" onchange="applyFilters()"> Graphic Design</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="Graphic Design">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="Healthcare" onchange="applyFilters()"> Healthcare</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="Healthcare">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="Hospitality / Hotel" onchange="applyFilters()"> Hospitality / Hotel</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="Hospitality / Hotel">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="Human Resources" onchange="applyFilters()"> Human Resources</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="Human Resources">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="Information Technology" onchange="applyFilters()"> Information Technology</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="Information Technology">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="Insurance" onchange="applyFilters()"> Insurance</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="Insurance">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="Journalism" onchange="applyFilters()"> Journalism</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="Journalism">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="Legal" onchange="applyFilters()"> Legal</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="Legal">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="Logistics / Supply Chain" onchange="applyFilters()"> Logistics / Supply Chain</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="Logistics / Supply Chain">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="Manufacturing" onchange="applyFilters()"> Manufacturing</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="Manufacturing">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="Marketing" onchange="applyFilters()"> Marketing</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="Marketing">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="Media / Communication" onchange="applyFilters()"> Media / Communication</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="Media / Communication">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="Merchandising" onchange="applyFilters()"> Merchandising</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="Merchandising">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="NGO / Social Services" onchange="applyFilters()"> NGO / Social Services</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="NGO / Social Services">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="Operations" onchange="applyFilters()"> Operations</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="Operations">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="Pharmaceutical" onchange="applyFilters()"> Pharmaceutical</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="Pharmaceutical">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="Product Management" onchange="applyFilters()"> Product Management</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="Product Management">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="Project Management" onchange="applyFilters()"> Project Management</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="Project Management">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="Public Relations" onchange="applyFilters()"> Public Relations</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="Public Relations">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="Purchasing / Procurement" onchange="applyFilters()"> Purchasing / Procurement</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="Purchasing / Procurement">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="Quality Assurance" onchange="applyFilters()"> Quality Assurance</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="Quality Assurance">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="Real Estate" onchange="applyFilters()"> Real Estate</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="Real Estate">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="Research & Development" onchange="applyFilters()"> Research & Development</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="Research & Development">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="Retail" onchange="applyFilters()"> Retail</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="Retail">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="Sales" onchange="applyFilters()"> Sales</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="Sales">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="Science" onchange="applyFilters()"> Science</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="Science">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="Security" onchange="applyFilters()"> Security</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="Security">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="Skilled Labor" onchange="applyFilters()"> Skilled Labor</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="Skilled Labor">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="Social Media" onchange="applyFilters()"> Social Media</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="Social Media">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="Software Development" onchange="applyFilters()"> Software Development</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="Software Development">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="Strategy / Planning" onchange="applyFilters()"> Strategy / Planning</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="Strategy / Planning">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="Telecommunication" onchange="applyFilters()"> Telecommunication</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="Telecommunication">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="Training & Development" onchange="applyFilters()"> Training & Development</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="Training & Development">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="Transportation" onchange="applyFilters()"> Transportation</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="Transportation">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="UI/UX Design" onchange="applyFilters()"> UI/UX Design</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="UI/UX Design">0</span>
+          </label>
+          <label class="flex justify-between items-center cursor-pointer">
+            <div class="flex items-center gap-2"><input type="checkbox" class="custom-checkbox category-filter" value="Writing / Content Creator" onchange="applyFilters()"> Writing / Content Creator</div>
+            <span class="bg-white px-2 py-0.5 rounded text-xs text-gray-400 category-count" data-category="Writing / Content Creator">0</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="mb-6">
+        <label class="block text-sm font-bold text-gray-800 mb-3">Tipe Proyek</label>
+        <div class="space-y-2 text-sm text-gray-600">
+          <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="custom-checkbox type-filter" value="On-Site" onchange="applyFilters()"> On-Site</label>
+          <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="custom-checkbox type-filter" value="Remote" onchange="applyFilters()"> Remote</label>
+          <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="custom-checkbox type-filter" value="Hybrid" onchange="applyFilters()"> Hybrid</label>
+        </div>
+      </div>
+
+      <div class="mt-8 bg-gradient-to-b from-gray-500 to-gray-800 text-white p-6 rounded-2xl text-center h-48 flex flex-col justify-center">
+        <h3 class="font-bold text-xl tracking-wider">WE ARE HIRING</h3>
+        <p class="text-sm mt-1">Lamar Sekarang!</p>
+      </div>
+
     </div>
 
-    <div class="stats-grid compact">
-      <article class="stat-box">
-        <span>Nama</span>
-        <strong id="freelancerName">-</strong>
-      </article>
-      <article class="stat-box">
-        <span>Lokasi</span>
-        <strong id="freelancerLocation">-</strong>
-      </article>
-      <article class="stat-box">
-        <span>Minat Kerja</span>
-        <strong id="freelancerInterest">-</strong>
-      </article>
-      <article class="stat-box">
-        <span>Skill</span>
-        <strong id="freelancerSkill">-</strong>
-      </article>
+    <div class="w-3/4">
+      
+      <div id="priorityTasksWrapper" class="hidden mb-10 bg-red-50/30 p-6 rounded-2xl border border-red-100">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-3">
+          <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+            <i class="ri-alert-fill text-red-500"></i> Tugas Prioritas Kamu
+          </h2>
+          <select id="dueDateFilter" onchange="renderPriorityTasks()" class="border border-red-200 bg-white rounded-lg px-3 py-1.5 text-sm text-gray-700 font-medium focus:outline-none focus:border-red-400 shadow-sm cursor-pointer">
+            <option value="all">Semua Waktu</option>
+            <option value="late">Terlambat (Late)</option>
+            <option value="10">H-10 Deadline</option>
+            <option value="8">H-8 Deadline</option>
+            <option value="6">H-6 Deadline</option>
+            <option value="4">H-4 Deadline</option>
+            <option value="2">H-2 Deadline</option>
+            <option value="1">H-1 Deadline</option>
+          </select>
+        </div>
+        
+        <div id="priorityTasksContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        <div id="paginationPriority" class="pagination-container hidden"></div>
+        
+        <p id="emptyPriorityMsg" class="hidden text-sm text-red-400 text-center py-4 font-medium">Tidak ada tugas prioritas dalam rentang waktu ini.</p>
+      </div>
+
+      <div class="flex justify-between items-center mb-6">
+        <p class="text-gray-500 text-sm" id="resultCount">Showing 0 results</p>
+        <select id="sortFilter" onchange="applyFilters()" class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm text-gray-600 focus:outline-none">
+          <option value="Latest">Sort by latest</option>
+          <option value="Highest Budget">Highest Budget</option>
+        </select>
+      </div>
+
+      <div id="jobListContainer">
+        <p class="text-gray-500">Memuat pekerjaan...</p>
+      </div>
+      <div id="paginationJobs" class="pagination-container hidden"></div>
+
     </div>
   </section>
-</main>
+  //WAITTTTT
 
-<!-- Author: Hanif -->
-<!-- PBI: KF-13 -->
-<!-- Sprint: Sprint 1 -->
-<script>
-async function loadFreelancerSummary() {
-  const data = await fetch("/freelancer/profile").then((response) => response.json())
-  document.getElementById("freelancerName").innerText = data.nama || "-"
-  document.getElementById("freelancerLocation").innerText = data.location || "-"
-  document.getElementById("freelancerInterest").innerText = data.job_interest || "-"
-  document.getElementById("freelancerSkill").innerText = data.skill || "-"
-  document.getElementById("freelancerSubtitle").innerText = data.email || "Belum ada email tersimpan"
-}
+  <footer class="footer-dark">
+    <div class="footer-container">
+      
+      <div class="footer-col">
+        <a class="text-xl font-bold flex items-center gap-2 text-white mb-6" href="#">
+          <i class="ri-briefcase-4-line text-2xl"></i> MariLancy
+        </a>
+        <p class="text-gray-400 leading-relaxed max-w-xs">
+          MariLancy adalah platform freelance yang menghubungkan mahasiswa dan talenta pemula dengan klien untuk mendapatkan pengalaman kerja nyata serta membangun portofolio melalui proyek digital.
+        </p>
+      </div>
 
-loadFreelancerSummary()
-</script>
+      <div class="footer-col">
+        <h4>Tentang Kami</h4>
+        <ul>
+          <li>Tentang Platform</li>
+          <li>Tim Pengembang</li>
+          <li>Partners</li>
+          <li>Untuk Freelancer</li>
+          <li>Untuk Klien</li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Kategori Proyek</h4>
+        <ul>
+          <li>Desain Grafis</li>
+          <li>Web Development</li>
+          <li>Content Writing</li>
+          <li>Social Media</li>
+          <li>Video Editing</li>
+          <li>Data Entry</li>
+          <li>Digital Marketing</li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Dapatkan Info Proyek Terbaru</h4>
+        <p class="text-gray-400 text-sm leading-relaxed">
+          Dapatkan update proyek terbaru dan kesempatan freelance langsung ke email kamu.
+        </p>
+        <div class="newsletter-form">
+          <input type="email" placeholder="Email Address" class="newsletter-input">
+          <button class="newsletter-btn">Kirim</button>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="footer-bottom">
+      <p>&copy; 2026 MariLancy. All rights reserved.</p>
+      <div class="flex gap-6">
+        <a href="#" class="hover:text-white transition">Kebijakan Privasi</a>
+        <a href="#" class="hover:text-white transition">Syarat & Ketentuan</a>
+      </div>
+    </div>
+  </footer>
 </body>
 </html>
