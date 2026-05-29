@@ -1,44 +1,38 @@
-package controllers
+package models
 
-import (
-	"fmt"
-	"net/http"
-	"path/filepath"
-	"time"
+import "time"
 
-	"marilancy/config"
-	"marilancy/models"
+type Project struct {
+	ID           uint       `gorm:"primaryKey" json:"id"`
+	JobID        uint       `gorm:"uniqueIndex:idx_freelancer_job_project" json:"job_id"`
+	Job          Job        `gorm:"foreignKey:JobID" json:"job"`
+	ClientID     uint       `json:"client_id"`
+	Client       Client     `gorm:"foreignKey:ClientID" json:"client"`
+	FreelancerID uint       `gorm:"uniqueIndex:idx_freelancer_job_project" json:"freelancer_id"`
+	Freelancer   Freelancer `gorm:"foreignKey:FreelancerID" json:"freelancer"`
+	Status       string     `gorm:"default:'active'" json:"status"`
+	Progress     int        `gorm:"default:0" json:"progress"`
+	Tasks        []Task     `gorm:"foreignKey:ProjectID" json:"tasks"`
 
-	"github.com/gin-gonic/gin"
-)
+	Transactions []Transaction `gorm:"foreignKey:ProjectID" json:"transactions"`
 
-// Author: Rania
-// PBI: KF-08
-// Sprint: Sprint 1
-func GetProjectDetail(c *gin.Context) {
-	projectID := c.Param("id")
-	var project models.Project
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 
-	if err := config.DB.Preload("Job").Preload("Client").Preload("Freelancer").Preload("Tasks").Where("id = ?", projectID).First(&project).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Project tidak ditemukan"})
-		return
-	}
+	StartDate *time.Time `json:"start_date"`
+	EndDate   *time.Time `json:"end_date"`
 
-	totalTasks := len(project.Tasks)
-	completedTasks := 0
-	for _, task := range project.Tasks {
-		if task.Status == "done" {
-			completedTasks++
-		}
-	}
+	SubmissionLink string `json:"submission_link"`
+	SubmissionFile string `json:"submission_file"`
+	PaymentStatus  string `gorm:"default:'unpaid'" json:"payment_status"`
+}
 
-	progress := 0
-	if totalTasks > 0 {
-		progress = (completedTasks * 100) / totalTasks
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"project":  project,
-		"progress": progress,
-	})
+type Task struct {
+	ID        uint      `gorm:"primaryKey" json:"id"`
+	ProjectID uint      `json:"project_id"`
+	Title     string    `json:"title"`
+	Status    string    `gorm:"default:'todo'" json:"status"`
+	Priority  string    `gorm:"default:'low'" json:"priority"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
