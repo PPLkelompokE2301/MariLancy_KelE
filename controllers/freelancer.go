@@ -1,10 +1,3 @@
-// Author: Fadhil
-// PBI: KF-02
-// Sprint: Sprint 1
-
-// Author: Rania
-// PBI: KF-09
-// Sprint: Sprint 1
 package controllers
 
 import (
