@@ -1,3 +1,10 @@
+// Author: Fadhil
+// PBI: KF-02
+// Sprint: Sprint 1
+
+// Author: Rania
+// PBI: KF-09
+// Sprint: Sprint 1
 package controllers
 
 import (
@@ -56,6 +63,9 @@ func GetMyApplications(c *gin.Context) {
 	c.JSON(200, apps)
 }
 
+// Author: Danu
+// PBI: KF-10
+// Sprint: Sprint 2
 func GetMyCompletedJobs(c *gin.Context) {
 	id, ok := getUserIDFromContext(c)
 	if !ok {
@@ -81,4 +91,3 @@ func GetMyCompletedJobs(c *gin.Context) {
 
 	c.JSON(200, apps)
 }
-
