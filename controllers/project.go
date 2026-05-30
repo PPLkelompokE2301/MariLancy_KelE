@@ -45,7 +45,7 @@ func GetProjectDetail(c *gin.Context) {
 func CreateTask(c *gin.Context) {
 	var input struct {
 		ProjectID uint   `json:"project_id"`
-		Title     string `json:"title"`
+		Title      string `json:"title"`
 	}
 
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -55,7 +55,7 @@ func CreateTask(c *gin.Context) {
 
 	task := models.Task{
 		ProjectID: input.ProjectID,
-		Title:     input.Title,
+		Title:      input.Title,
 		Status:    "todo",
 	}
 
@@ -79,7 +79,7 @@ func UpdateTaskStatus(c *gin.Context) {
 	}
 
 	if err := config.DB.Model(&models.Task{}).Where("id = ?", taskID).Update("status", input.Status).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal update task"})
+		c.StatusInternalServerError, gin.H{"error": "Gagal update task"}
 		return
 	}
 
