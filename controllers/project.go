@@ -45,7 +45,7 @@ func GetProjectDetail(c *gin.Context) {
 func CreateTask(c *gin.Context) {
 	var input struct {
 		ProjectID uint   `json:"project_id"`
-		Title     string `json:"title"`
+		Title      string `json:"title"`
 	}
 
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -55,7 +55,7 @@ func CreateTask(c *gin.Context) {
 
 	task := models.Task{
 		ProjectID: input.ProjectID,
-		Title:     input.Title,
+		Title:      input.Title,
 		Status:    "todo",
 	}
 
@@ -79,7 +79,7 @@ func UpdateTaskStatus(c *gin.Context) {
 	}
 
 	if err := config.DB.Model(&models.Task{}).Where("id = ?", taskID).Update("status", input.Status).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal update task"})
+		c.StatusInternalServerError, gin.H{"error": "Gagal update task"}
 		return
 	}
 
@@ -109,7 +109,7 @@ func UpdateTaskStatus(c *gin.Context) {
 		if newProgress > 0 && newProgress < 100 && project.Status == "active" {
 			newStatus = "inprogress"
 		} else if newProgress == 0 && project.Status == "inprogress" {
-			newStatus = "active" 
+			newStatus = "active"
 		}
 
 		config.DB.Model(&models.Project{}).Where("id = ?", project.ID).Updates(map[string]interface{}{
@@ -190,6 +190,120 @@ func RequestRevision(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Proyek dibuka kembali untuk revisi"})
+}
+
+func GetMyProjects(c *gin.Context) {
+	userID, ok := getUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	var projects []models.Project
+	if err := config.DB.Preload("Job").Preload("Client").Preload("Tasks").Preload("Transactions").Where("freelancer_id = ?", userID).Order("created_at desc").Find(&projects).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal mengambil data proyek"})
+		return
+	}
+
+	var result []gin.H
+	for _, p := range projects {
+		totalTasks := len(p.Tasks)
+		completedTasks := 0
+		for _, t := range p.Tasks {
+			if t.Status == "done" {
+				completedTasks++
+			}
+		}
+
+		progress := 0
+		if totalTasks > 0 {
+			progress = (completedTasks * 100) / totalTasks
+		}
+
+		statusPembayaran := "belum dibayar"
+		if len(p.Transactions) > 0 {
+			var latestTx models.Transaction
+			for _, tx := range p.Transactions {
+				if tx.ID > latestTx.ID {
+					latestTx = tx
+				}
+			}
+
+			switch latestTx.Status {
+			case "pending":
+				statusPembayaran = "sedang diproses"
+			case "process":
+				statusPembayaran = "sedang diproses"
+			case "success":
+				statusPembayaran = "sudah bayar"
+			case "rejected":
+				statusPembayaran = "ditolak"
+			default:
+				statusPembayaran = "belum dibayar"
+			}
+		}
+
+		result = append(result, gin.H{
+			"id":                p.ID,
+			"status":            p.Status,
+			"job":               p.Job,
+			"client":            p.Client,
+			"progress":          progress,
+			"tasks":             p.Tasks,
+			"start_date":        p.StartDate,
+			"end_date":          p.EndDate,
+			"status_pembayaran": statusPembayaran,
+			"transactions":      p.Transactions,
+		})
+	}
+
+	c.JSON(http.StatusOK, result)
+}
+
+func GetClientProjects(c *gin.Context) {
+	userID, _ := getUserID(c)
+	var projects []models.Project
+
+	if err := config.DB.Preload("Job").Preload("Freelancer").Preload("Tasks").Preload("Transactions").Where("client_id = ?", userID).Find(&projects).Error; err != nil {
+		c.JSON(500, gin.H{"error": "Gagal ambil data"})
+		return
+	}
+
+	var result []gin.H
+	for _, p := range projects {
+		totalTasks := len(p.Tasks)
+		completedTasks := 0
+		for _, t := range p.Tasks {
+			if t.Status == "done" {
+				completedTasks++
+			}
+		}
+
+		progress := 0
+		if totalTasks > 0 {
+			progress = (completedTasks * 100) / totalTasks
+		}
+
+		statusPembayaran := "belum dibayar"
+		if len(p.Transactions) > 0 {
+			lastTx := p.Transactions[len(p.Transactions)-1]
+			statusPembayaran = lastTx.Status
+		}
+
+		result = append(result, gin.H{
+			"id":                p.ID,
+			"status":            p.Status,
+			"job":               p.Job,
+			"freelancer":        p.Freelancer,
+			"progress":          progress,
+			"start_date":        p.StartDate,
+			"end_date":          p.EndDate,
+			"status_pembayaran": statusPembayaran,
+			"transactions":      p.Transactions,
+		})
+	}
+
+	c.JSON(http.StatusOK, result)
 }
 
 func DeleteTask(c *gin.Context) {
