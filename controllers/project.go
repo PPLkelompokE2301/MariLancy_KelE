@@ -192,6 +192,10 @@ func RequestRevision(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Proyek dibuka kembali untuk revisi"})
 }
 
+// Author: Danu
+// PBI: KF-10
+// Sprint: Sprint 2
+
 func GetMyProjects(c *gin.Context) {
 	userID, ok := getUserID(c)
 	if !ok {
@@ -259,6 +263,10 @@ func GetMyProjects(c *gin.Context) {
 
 	c.JSON(http.StatusOK, result)
 }
+
+// Author: Danu
+// PBI: KF-10
+// Sprint: Sprint 2
 
 func GetClientProjects(c *gin.Context) {
 	userID, _ := getUserID(c)
