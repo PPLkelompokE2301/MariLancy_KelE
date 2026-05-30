@@ -1,3 +1,7 @@
+<!-- Author: Danu -->
+<!-- PBI: KF-10 -->
+<!-- Sprint: Sprint 2 -->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -371,9 +375,12 @@
                   <a href="/freelancer/workspace?project_id=${p.id}" class="bg-[#2b9c96] hover:bg-teal-700 text-white px-4 py-2 rounded-lg text-[10px] font-bold shadow-sm transition w-full text-center">Lihat Detail</a>
                   
                   ${(statusClean === 'proses' || statusClean === 'pending' || statusClean === 'process' || statusClean === 'sedang diproses') ? 
-                    `<a href="/freelancer/verifikasi-pembayaran.html?tx_id=${lastTx ? lastTx.ID || lastTx.id : 0}&img=${encodeURIComponent(lastTx ? lastTx.bukti_transfer : '')}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-[10px] font-bold shadow-sm transition w-full text-center flex items-center justify-center gap-1">
-                      <i class="ri-checkbox-circle-line"></i> Verifikasi Bayar
-                    </a>` 
+                    `<a href="${lastTx ? lastTx.bukti_transfer : '#'}" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-[10px] font-bold shadow-sm transition w-full text-center flex items-center justify-center gap-1">
+                      <i class="ri-eye-line"></i> Lihat Bukti
+                    </a>
+                    <button onclick="rejectPayment(${lastTx ? lastTx.ID || lastTx.id : 0})" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-[10px] font-bold shadow-sm transition w-full text-center">
+                      Tidak Sesuai
+                    </button>` 
                     : (statusClean === 'sudah bayar' || statusClean === 'success' ? 
                       `<span class="bg-green-100 text-green-700 px-4 py-2 rounded-lg text-[10px] font-bold border border-green-200 w-full text-center">Lunas</span>` : '')
                   }
@@ -556,66 +563,61 @@
     }
 
     async function loadNotificationCount() {
+        const badge = document.getElementById("notifBadge");
+        if (!badge) return;
 
-      const appRes = await fetch("/freelancer/applications", {
-        headers: { "Authorization": "Bearer " + token }
-      });
+        const [appRes, chatRes] = await Promise.all([
+            fetch("/freelancer/applications", { headers: { "Authorization": "Bearer " + token } }),
+            fetch("/api/chat/list?role=freelancer", { headers: { "Authorization": "Bearer " + token } })
+        ]);
 
-      const appData = await appRes.json();
+        let unreadCount = 0;
+        const readNotifs = getReadNotifs(); 
+        const readMessages = getReadMessageNotifs();
 
-      let unreadCount = 0;
+        if (appRes.ok) {
+            const appData = await appRes.json();
+            if (Array.isArray(appData)) {
+                appData.forEach(app => {
+                    const job = app.job || app.Job || {};
+                    let isNotif = (app.status === "accepted" || app.status === "rejected") || 
+                                  (app.status === "pending" && (job.status === "dihapus" || job.status === "ditutup"));
 
-      const readNotifs = getReadNotifs();
+                    const appId = Number(app.id);
+                    const isRead = readNotifs.map(Number).includes(appId);
 
-      appData.forEach(app => {
-        const job = app.job || app.Job || {};
-
-        let isNotif = false;
-
-        if (app.status === "accepted" || app.status === "rejected") {
-          isNotif = true;
-        } else if (app.status === "pending" &&
-          (job.status === "dihapus" || job.status === "ditutup")) {
-          isNotif = true;
-        }
-
-        if (isNotif && !readNotifs.includes(app.id)) {
-          unreadCount++;
-        }
-      });
-
-      try {
-        const msgRes = await fetch("/api/chat/list?role=freelancer", {
-          headers: { "Authorization": "Bearer " + token }
-        });
-
-        if (msgRes.ok) {
-          const conversations = await msgRes.json();
-          const readMessages = getReadMessageNotifs();
-
-          conversations.forEach(conv => {
-            const messageKey =
-              `${conv.project_id}-${conv.target_user_id}-${conv.created_at}`;
-
-            if (!readMessages.includes(messageKey)) {
-              unreadCount++;
+                    if (isNotif && !isRead) {
+                        unreadCount++;
+                    }
+                });
             }
-          });
         }
 
-      } catch (err) {
-        console.error(err);
-      }
+        if (chatRes.ok) {
+            const conversations = await chatRes.json();
+            const unreadRooms = new Set(); 
 
-      const badge = document.getElementById("notifBadge");
+            if (conversations && conversations.length > 0) {
+                conversations.forEach(conv => {
+                    const messageKey = `${conv.project_id}-${conv.target_user_id}-${conv.created_at}`;
+                    const roomKey = `${conv.project_id}-${conv.target_user_id}`;
+                    
+                    if (conv.unread_count > 0 && !readMessages.includes(messageKey)) {
+                        unreadRooms.add(roomKey);
+                    }
+                });
+            }
+            unreadCount += unreadRooms.size;
+        }
 
-      if (unreadCount > 0) {
-        badge.innerText = unreadCount;
-        badge.classList.remove("hidden");
-      } else {
-        badge.classList.add("hidden");
-      }
+        if (unreadCount > 0) {
+            badge.innerText = unreadCount;
+            badge.classList.remove("hidden");
+        } else {
+            badge.classList.add("hidden");
+        }
     }
+    
     async function rejectPayment(txId) {
         if (txId === 0) { alert("Data transaksi tidak ditemukan!"); return; }
         if (!confirm("Apakah Anda yakin bukti pembayaran ini tidak sesuai?")) return;
