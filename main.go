@@ -1,53 +1,24 @@
-// Author: Hanif
-// PBI: KF-13
-// Sprint: Sprint 1
-package main
+	// Author: Fadhil
+	// PBI: KF-12
+	// Sprint: Sprint 2
+	go func() {
+		for {
+			time.Sleep(1 * time.Hour)
 
-import (
-	"marilancy/config"
-	"marilancy/models"
-	"marilancy/routes"
+			batasWaktu := time.Now().Add(-48 * time.Hour)
 
-	"github.com/gin-gonic/gin"
-)
+			var txs []models.Transaction
+			err := config.DB.Where("status = ? AND created_at <= ?", "pending", batasWaktu).Find(&txs).Error
+			if err == nil && len(txs) > 0 {
+				for _, tx := range txs {
+					config.DB.Model(&tx).Update("status", "success")
 
-func main() {
+					config.DB.Model(&models.Project{}).Where("id = ?", tx.ProjectID).Update("payment_status", "paid")
 
-	config.ConnectDB()
-
-	config.DB.AutoMigrate(
-		&models.Freelancer{},
-		&models.Client{},
-		&models.Admin{},
-		&models.Job{},
-		&models.Application{},
-		&models.Rating{},
-	)
-	config.SeedAdmin()
+					fmt.Printf("[AUTO-APPROVE] Transaksi ID %d otomatis sukses karena sudah melewati 2 hari tanpa rejeksi freelancer.\n", tx.ID)
+				}
+			}
+		}
+	}()
 
 	r := gin.Default()
-
-	r.Static("/static", "./static")
-	r.Static("/uploads", "./uploads")
-	r.LoadHTMLGlob("templates/*")
-
-	routes.SetupRoutes(r)
-
-	r.GET("/", func(c *gin.Context) {
-		c.HTML(200, "login.html", nil)
-	})
-
-	r.GET("/register", func(c *gin.Context) {
-		c.HTML(200, "register.html", nil)
-	})
-
-	r.GET("/freelancer", func(c *gin.Context) {
-		c.HTML(200, "dashboard_freelancer.html", nil)
-	})
-
-	r.GET("/client", func(c *gin.Context) {
-		c.HTML(200, "dashboard_client.html", nil)
-	})
-
-	r.Run(":8080")
-}
