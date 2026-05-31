@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ruang Obrolan - MariLancy</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
+  <style> 
+    body { font-family: 'Poppins', sans-serif; background-color: #f8fafc; display: flex; flex-direction: column; height: 100vh; margin: 0;} 
+    #chatBox { flex: 1; overflow-y: auto; scroll-behavior: smooth; }
+  </style>
+</head>
+<body class="bg-gray-50">
+
+  <div class="bg-white px-6 py-4 border-b border-gray-200 flex items-center gap-4 shadow-sm">
+    <a href="javascript:history.back()" class="text-gray-500 hover:text-black text-xl"><i class="ri-arrow-left-line"></i></a>
+    <div>
+      <h2 class="font-bold text-gray-900">Ruang Obrolan</h2>
+      <p id="subHeader" class="text-xs text-gray-500">Memuat info...</p>
+    </div>
+  </div>
+
+  <div id="chatBox" class="p-6 space-y-4">
+    <p class="text-center text-xs text-gray-400">Mulai percakapan Anda...</p>
+  </div>
+
+  <div class="bg-white p-4 border-t border-gray-200 flex items-center gap-3">
+    <input type="text" id="messageInput" class="flex-1 bg-gray-100 border-none rounded-full px-5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#2b9c96]" placeholder="Tulis pesan Anda...">
+    <button onclick="sendMessage()" class="bg-[#2b9c96] hover:bg-teal-700 text-white w-12 h-12 rounded-full flex items-center justify-center transition shrink-0">
+      <i class="ri-send-plane-fill text-xl"></i>
+    </button>
+  </div>
+
+  <script>
+    const token = localStorage.getItem("token");
+    const myRole = localStorage.getItem("role"); 
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    const projectId = urlParams.get('project_id');
+    const targetId = urlParams.get('target_id');
+
+    if (!token || !projectId || !targetId) {
+      alert("Parameter tidak lengkap atau belum login");
+      window.location.href = "/";
+    }
+
+    let myAvatarUrl = "";
+    let targetAvatarUrl = "";
+    let lastChatData = "";
+
+    async function loadChatHeader() {
+      try {
+        const res = await fetch(`/api/projects/${projectId}`, {
+          headers: { "Authorization": "Bearer " + token }
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          const project = data.project;
+          
+          const projectTitle = project.job.judul || "Proyek";
+          let targetName = "";
+          let myName = "";
+
+          if (myRole === "client") {
+            targetName = project.freelancer.nama || "Freelancer";
+            myName = project.client.nama_client || "Client";
+            
+            targetAvatarUrl = project.freelancer.foto_profil || `https://ui-avatars.com/api/?name=${encodeURIComponent(targetName)}&background=cbd5e1&color=fff`;
+            myAvatarUrl = project.client.foto_profil || `https://ui-avatars.com/api/?name=${encodeURIComponent(myName)}&background=2b9c96&color=fff`;
+          } else {
+            targetName = project.client.nama_client || "Client";
+            myName = project.freelancer.nama || "Freelancer";
+            
+            targetAvatarUrl = project.client.foto_profil || `https://ui-avatars.com/api/?name=${encodeURIComponent(targetName)}&background=cbd5e1&color=fff`;
+            myAvatarUrl = project.freelancer.foto_profil || `https://ui-avatars.com/api/?name=${encodeURIComponent(myName)}&background=2b9c96&color=fff`;
+          }
+
+          document.getElementById("subHeader").innerText = `${projectTitle} | Chat dengan ${targetName}`;
+        }
+      } catch (err) {
+        console.error("Gagal memuat detail header & avatar:", err);
+        document.getElementById("subHeader").innerText = `Proyek #${projectId}`;
+      }
+    }
+
+    async function loadMessages() {
+      const res = await fetch(`/api/chat/history?project_id=${projectId}&target_id=${targetId}`, {
+        headers: { "Authorization": "Bearer " + token }
+      });
+
+      if (res.ok) {
+        const messages = await res.json();
+        const chatBox = document.getElementById("chatBox");
+
+        const currentChatData = JSON.stringify(messages);
+        if (currentChatData === lastChatData) return;
+        lastChatData = currentChatData;
+
+        chatBox.innerHTML = "";
+
+        if (messages.length === 0) {
+            chatBox.innerHTML = '<p class="text-center text-xs text-gray-400 mt-10">Belum ada pesan. Sapa lawan bicara Anda!</p>';
+        }
+
+        messages.forEach(msg => {
+            const isMe = (msg.sender_role === myRole);
+            
+            if (isMe) {
+              chatBox.innerHTML += `
+                  <div class="flex justify-end items-end gap-2 mb-4">
+                    <div class="bg-[#2b9c96] text-white px-5 py-3 rounded-2xl rounded-tr-sm max-w-[75%] text-sm shadow-sm">
+                        ${msg.content}
+                    </div>
+                    <img src="${myAvatarUrl}" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=User&background=2b9c96&color=fff';" class="w-8 h-8 rounded-full object-cover shrink-0 shadow-sm border border-gray-100">
+                  </div>
+              `;
+            } else {
+              chatBox.innerHTML += `
+                  <div class="flex justify-start items-end gap-2 mb-4">
+                    <img src="${targetAvatarUrl}" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=User&background=cbd5e1&color=fff';" class="w-8 h-8 rounded-full object-cover shrink-0 shadow-sm border border-gray-100">
+                    <div class="bg-white text-gray-800 border border-gray-200 px-5 py-3 rounded-2xl rounded-tl-sm max-w-[75%] text-sm shadow-sm">
+                        ${msg.content}
+                    </div>
+                  </div>
+              `;
+            }
+        });
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById("messageInput");
+      const content = input.value.trim();
+      if (!content) return;
+
+      input.value = "";
+      
+      const payload = {
+        project_id: parseInt(projectId),
+        receiver_id: parseInt(targetId),
+        content: content,
+        sender_role: myRole
+      };
+
+      await fetch("/api/chat/send", {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + token 
+        },
+        body: JSON.stringify(payload)
+      });
+      setTimeout(() => {
+        lastChatData = ""; 
+        loadMessages();
+      }, 500);
+    }
+
+    document.getElementById("messageInput").addEventListener("keypress", function(e) {
+      if (e.key === "Enter") sendMessage();
+    });
+
+    function checkURLTemplateText() {
+      const textParam = urlParams.get('text');
+      if (textParam) {
+        const inputField = document.getElementById("messageInput");
+        if (inputField) {
+          inputField.value = decodeURIComponent(textParam);
+
+          sendMessage(); 
+
+          const cleanUrl = window.location.pathname + `?project_id=${projectId}&target_id=${targetId}`;
+          window.history.replaceState({}, document.title, cleanUrl);
+        }
+      }
+    }
+
+    async function initChat() {
+        await loadChatHeader(); 
+        await loadMessages(); 
+        await checkURLTemplateText();  
+        setInterval(loadMessages, 3000); 
+    }
+
+    initChat();
+  </script>
+</body>
+</html>

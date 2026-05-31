@@ -63,6 +63,9 @@ func GetMyApplications(c *gin.Context) {
 	c.JSON(200, apps)
 }
 
+// Author: Danu
+// PBI: KF-10
+// Sprint: Sprint 2
 func GetMyCompletedJobs(c *gin.Context) {
 	id, ok := getUserIDFromContext(c)
 	if !ok {
@@ -71,7 +74,20 @@ func GetMyCompletedJobs(c *gin.Context) {
 	}
 
 	var apps []models.Application
-	config.DB.Where("freelancer_id = ? AND status = ?", id, "accepted").Find(&apps)
+
+	err := config.DB.
+		Joins("JOIN jobs ON jobs.id = applications.job_id").
+		Preload("Job").
+		Where("applications.freelancer_id = ?", id).
+		Where("applications.status = ?", "accepted").
+		Where("applications.status != ?", "dihapus").
+		Where("jobs.status != ?", "dihapus").
+		Find(&apps).Error
+
+	if err != nil {
+		c.JSON(500, gin.H{"error": "Gagal ambil completed jobs"})
+		return
+	}
 
 	c.JSON(200, apps)
 }
