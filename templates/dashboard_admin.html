@@ -1,3 +1,6 @@
+<!-- Author: Arga -->
+<!-- PBI: KF-17 -->
+<!-- Sprint: Sprint 2 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -70,14 +73,13 @@
               <option value="">Semua Kategori</option>
               <option value="Bug Sistem">Bug Sistem</option>
               <option value="Pembayaran">Pembayaran</option>
+              <option value="Akun Diretas">Akun Diretas</option>
               <option value="Masalah Chat">Masalah Chat</option>
               <option value="Verifikasi Profil">Verifikasi Profil</option>
               <option value="Notifikasi Error">Notifikasi Error</option>
               <option value="Masalah Proyek">Masalah Proyek</option>
+              <option value="Login Gagal">Login Gagal</option>
               <option value="UI/UX Berantakan">UI/UX Berantakan</option>
-              <option value="Indikasi Penipuan Proyek">Indikasi Penipuan Proyek</option>
-              <option value="Deskripsi Tidak Jelas / Mengarah ke Scam">Deskripsi Tidak Jelas / Mengarah ke Scam</option>
-              <option value="Masalah Client Tidak Responsif">Masalah Client Tidak Responsif</option>
               <option value="Lainnya">Lainnya</option>
             </select>
             <input type="date" id="filterTanggal" onchange="filterReports()" class="border rounded-lg px-3 py-2 text-sm">
@@ -87,14 +89,7 @@
         <div class="overflow-x-auto">
           <table class="w-full text-left custom-table">
             <thead>
-              <tr>
-                <th>Tanggal</th>
-                <th>User</th>
-                <th>Kategori</th>
-                <th>Referensi Proyek</th>
-                <th>Judul Masalah</th>
-                <th>Aksi</th>
-              </tr>
+              <tr><th>Tanggal</th><th>User</th><th>Kategori</th><th>Judul</th><th>Aksi</th></tr>
             </thead>
             <tbody id="reportTableBody"></tbody>
           </table>
@@ -207,32 +202,21 @@
     async function loadUserTable(type) {
       const data = await safeFetch(type === "freelancer" ? "/admin/freelancers" : "/admin/clients");
       const body = document.getElementById("userTableBody");
-      document.getElementById("userTableHeader").innerHTML = `<tr><th>Nama</th><th>Email</th><th>${type === "freelancer" ? "Skill" : "Lokasi"}</th><th>Status</th><th>Aksi</th></tr>`;
+      document.getElementById("userTableHeader").innerHTML = `<tr><th>Nama</th><th>Email</th><th>${type === "freelancer" ? "Skill" : "Lokasi"}</th><th>Aksi</th></tr>`;
       
       if (!data || data.length === 0) {
-        body.innerHTML = '<tr><td colspan="5" class="text-center py-4">Kosong</td></tr>';
+        body.innerHTML = '<tr><td colspan="4" class="text-center py-4">Kosong</td></tr>';
         return;
       }
 
-      body.innerHTML = data.map(u => {
-        const isSuspended = u.status === "suspended";
-        const statusBadge = isSuspended 
-            ? `<span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-[10px] font-bold">SUSPENDED</span>`
-            : `<span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-[10px] font-bold">ACTIVE</span>`;
-            
-        const btnText = isSuspended ? "Aktifkan" : "Suspend";
-        const btnClass = isSuspended ? "text-green-600 hover:text-green-800" : "text-red-500 hover:text-red-700";
-
-        return `
+      body.innerHTML = data.map(u => `
         <tr>
           <td class="font-semibold">${u.nama || u.nama_client}</td>
           <td>${u.email}</td>
           <td>${u.skill || u.lokasi || "-"}</td>
-          <td>${statusBadge}</td>
-          <td><button onclick="toggleSuspendUser('${type}', '${u.ID}', '${isSuspended}')" class="font-bold ${btnClass}">${btnText}</button></td>
+          <td><button onclick="deleteUser('${type}', '${u.ID}')" class="text-red-500 font-bold">Hapus</button></td>
         </tr>
-        `
-      }).join("");
+      `).join("");
     }
 
     async function loadJobTable() {
@@ -249,7 +233,7 @@
         const rowClass = isDeleted ? 'bg-gray-50' : '';
         
         return `
-          <tr id="moderasi-job-${j.id || j.ID}" class="${rowClass} transition-all duration-300">
+          <tr class="${rowClass}">
             <td class="font-semibold ${isDeleted ? 'text-gray-400' : 'text-gray-900'}">${j.judul}</td>
             <td>${j.client?.nama_client || "-"}</td>
             <td>${j.kategori}</td>
@@ -280,87 +264,19 @@
     function renderReports(data) {
         const body = document.getElementById("reportTableBody");
         if (!data || data.length === 0) {
-            body.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-gray-500">Tidak ada laporan.</td></tr>';
+            body.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-gray-500">Tidak ada laporan.</td></tr>';
             return;
         }
-
-        body.innerHTML = data.map(r => {
-            const judulMentah = r.judul || '-';
-            
-            const refMatch = judulMentah.match(/^\[REF:\s*(.*?)\]\s*(.*)$/);
-            
-            let referensiTeks = "-";
-            let judulClean = judulMentah;
-            let targetId = "";
-
-            if (refMatch) {
-                referensiTeks = refMatch[1]; 
-                judulClean = refMatch[2];      
-                
-                if (referensiTeks.includes("JOB-ID-")) {
-                    targetId = referensiTeks.replace("JOB-ID-", "").trim();
-                }
-            }
-
-            const referensiHTML = referensiTeks !== "-" 
-                ? `<button onclick="cariReferensiProyek('${targetId}', '${referensiTeks.replace(/'/g, "\\'")}')" class="text-left text-teal-600 font-semibold hover:underline flex items-center gap-1">
-                    <i class="ri-git-repository-private-line"></i> ${referensiTeks}
-                   </button>`
-                : `<span class="text-gray-400">-</span>`;
-
-            return `
-                <tr class="hover:bg-gray-50/50 transition">
-                    <td>${new Date(r.created_at).toLocaleDateString('id-ID')}</td>
-                    <td class="font-semibold text-gray-800">${r.nama || '-'}</td>
-                    <td>
-                        <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200">
-                            ${r.kategori || '-'}
-                        </span>
-                    </td>
-                    <td>${referensiHTML}</td>
-                    <td class="text-gray-600 max-w-xs truncate" title="${judulClean}">${judulClean}</td>
-                    <td>
-                        ${r.bukti_path ? `<a href="/${r.bukti_path}" target="_blank" class="text-teal-600 font-bold hover:underline flex items-center gap-0.5"><i class="ri-image-line"></i> Bukti</a>` : '<span class="text-gray-300">-</span>'}
-                    </td>
-                </tr>
-            `;
-        }).join("");
+        body.innerHTML = data.map(r => `
+            <tr>
+                <td>${new Date(r.created_at).toLocaleDateString('id-ID')}</td>
+                <td class="font-semibold">${r.nama || '-'}</td>
+                <td>${r.kategori || '-'}</td>
+                <td>${r.judul || '-'}</td>
+                <td>${r.bukti_path ? `<a href="/${r.bukti_path}" target="_blank" class="text-teal-600 font-bold hover:underline">Lihat Bukti</a>` : '-'}</td>
+            </tr>
+        `).join("");
     }
-    async function cariReferensiProyek(jobId, namaFallback) {
-        showSection('jobs');
-
-        setTimeout(() => {
-            let rowTarget = null;
-
-            if (jobId) {
-                rowTarget = document.getElementById(`moderasi-job-${jobId}`);
-            }
-
-            if (!rowTarget) {
-                const rows = document.querySelectorAll("#jobTableBody tr");
-                for (let row of rows) {
-                    const judulKolom = row.querySelector("td:first-child");
-                    if (judulKolom && judulKolom.innerText.toLowerCase().includes(namaFallback.toLowerCase())) {
-                        rowTarget = row;
-                        break;
-                    }
-                }
-            }
-
-            if (rowTarget) {
-                rowTarget.classList.add("bg-yellow-100", "ring-4", "ring-teal-500", "scale-[0.98]");
-
-                rowTarget.scrollIntoView({ behavior: "smooth", block: "center" });
-
-                setTimeout(() => {
-                    rowTarget.classList.remove("bg-yellow-100", "ring-4", "ring-teal-500", "scale-[0.98]");
-                }, 4000);
-            } else {
-                alert(`Data proyek referensi "${namaFallback}" tidak ditemukan di list moderasi (kemungkinan sudah dihapus permanen).`);
-            }
-        }, 150);
-    }
-
     function filterReports() {
         const kat = document.getElementById("filterKategori").value;
         const tgl = document.getElementById("filterTanggal").value;
@@ -391,7 +307,7 @@
                 data.push(row);
             });
 
-            const ws = XLSX.utils.aoa_to_sheet([["Tanggal", "User", "Kategori", "Referensi Proyek", "Judul Masalah", "Link Bukti"], ...data]);
+            const ws = XLSX.utils.aoa_to_sheet([["Tanggal", "User", "Kategori", "Judul", "Link Bukti"], ...data]);
             XLSX.utils.book_append_sheet(wb, ws, "Laporan");
             XLSX.writeFile(wb, "Data_Laporan_Support.xlsx");
         } else {
@@ -436,20 +352,10 @@
       `).join("");
     }
 
-    async function toggleSuspendUser(type, id, currentlySuspended) {
-      const isSuspending = currentlySuspended === "false"; // Jika dari HTML terkirim sbg string false
-      const actionText = isSuspending ? "suspend" : "aktifkan kembali";
-      
-      if (confirm(`Apakah Anda yakin ingin me-${actionText} user ini?`)) {
-        const endpoint = `/admin/${type}s/${id}/suspend`;
-        const res = await fetch(endpoint, { method: "PUT", headers: { "Authorization": "Bearer " + token } });
-        
-        if (res.ok) {
-            loadUserTable(type); 
-            loadDashboard();
-        } else {
-            alert("Gagal mengubah status user.");
-        }
+    async function deleteUser(type, id) {
+      if (confirm("Hapus user?")) {
+        await fetch(`/admin/${type}s/${id}`, { method: "DELETE", headers: { "Authorization": "Bearer " + token } });
+        loadUserTable(type); loadDashboard();
       }
     }
 
