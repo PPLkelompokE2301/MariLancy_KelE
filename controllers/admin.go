@@ -26,6 +26,90 @@ func AdminDashboardData(c *gin.Context) {
 
 // Author: Arga
 // PBI: KF-17
+// Sprint: Sprint 1
+func GetFreelancers(c *gin.Context) {
+	var users []models.Freelancer
+	if err := config.DB.Find(&users).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal ambil freelancer"})
+		return
+	}
+	c.JSON(http.StatusOK, users)
+}
+
+// Author: Arga
+// PBI: KF-17
+// Sprint: Sprint 1
+func GetClients(c *gin.Context) {
+	var clients []models.Client
+	if err := config.DB.Find(&clients).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal ambil client"})
+		return
+	}
+	c.JSON(http.StatusOK, clients)
+}
+
+// Author: Arga
+// PBI: KF-17
+// Sprint: Sprint 1
+func DeleteFreelancer(c *gin.Context) {
+	id := c.Param("id")
+	if err := config.DB.Delete(&models.Freelancer{}, id).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal hapus"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"msg": "Berhasil dihapus"})
+}
+
+// Author: Arga
+// PBI: KF-17
+// Sprint: Sprint 1
+func DeleteClient(c *gin.Context) {
+	id := c.Param("id")
+	if err := config.DB.Delete(&models.Client{}, id).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal hapus"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"msg": "Berhasil dihapus"})
+}
+
+// Author: Arga
+// PBI: KF-03
+// Sprint: Sprint 1
+func AdminGetJobs(c *gin.Context) {
+	var jobs []models.Job
+	if err := config.DB.Preload("Client").Find(&jobs).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal ambil job"})
+		return
+	}
+	c.JSON(http.StatusOK, jobs)
+}
+
+// Author: Arga
+// PBI: KF-03
+// Sprint: Sprint 1
+func DeleteJobs(c *gin.Context) {
+	id := c.Param("id")
+	if err := config.DB.Model(&models.Job{}).Where("id = ?", id).Update("status", "dihapus").Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menyembunyikan job"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"msg": "Job berhasil disembunyikan"})
+}
+
+// Author: Arga
+// PBI: KF-03
+// Sprint: Sprint 1
+func RestoreJobs(c *gin.Context) {
+	id := c.Param("id")
+	if err := config.DB.Model(&models.Job{}).Where("id = ?", id).Update("status", "ditutup").Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal memulihkan job"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"msg": "Job berhasil dipulihkan"})
+}
+
+// Author: Arga
+// PBI: KF-17
 // Sprint: Sprint 2
 func AdminGetTransactions(c *gin.Context) {
 	var results []struct {
