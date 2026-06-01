@@ -1,9 +1,3 @@
-
-// Author: Arga
-// Author: Fadhil
-// Author: Aura
-// PBI: KF-03
-// Sprint: Sprint 1
 package controllers
 
 import (
@@ -15,6 +9,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// Author: Hanif
+// PBI: KF-13
+// Sprint: Sprint 1
 func getUserID(c *gin.Context) (uint, bool) {
 	val, exists := c.Get("user_id")
 	if !exists {
@@ -39,11 +36,16 @@ func getUserID(c *gin.Context) (uint, bool) {
 	}
 }
 
+// Author: Aura
+// PBI: KF-03
+// Sprint: Sprint 2 
+// NEW - Revisi Bug
 func CreateJob(c *gin.Context) {
 	var job models.Job
 
 	var input struct {
 		Judul             string   `json:"judul"`
+		JobNo             string   `json:"job_no"`
 		JobDesc           string   `json:"job_desc"`
 		KebutuhanProyek   string   `json:"kebutuhan_proyek"`
 		KebutuhanSkill    string   `json:"kebutuhan_skill"`
@@ -64,13 +66,54 @@ func CreateJob(c *gin.Context) {
 		return
 	}
 
+	if input.Judul == "" || input.JobDesc == "" || input.KebutuhanProyek == "" ||
+		input.KebutuhanSkill == "" || input.Kategori == "" || input.Budget == "" ||
+		input.BatasPendidikan == "" || input.PengalamanKerja == "" ||
+		input.Tipe == "" || input.LokasiPelaksanaan == "" || input.Level == "" {
+		c.JSON(400, gin.H{"error": "Semua field wajib diisi"})
+		return
+	}
+
+	if input.Judul != "" {
+		for _, char := range input.Judul {
+			if !((char >= 'a' && char <= 'z') ||
+				(char >= 'A' && char <= 'Z') ||
+				char == ' ' || char == '-' || char == '&' ||
+				char == '(' || char == ')' || char == ',' ||
+				char == '.' || char == '/') {
+				c.JSON(400, gin.H{"error": "Judul hanya boleh berisi huruf, spasi, dan tanda baca ( - & , . / () ). Angka dan simbol lain tidak diperbolehkan."})
+				return
+			}
+		}
+	}
+	if input.JobNo != "" {
+		for _, char := range input.JobNo {
+			if (char < '0' || char > '9') && char != '-' {
+				c.JSON(400, gin.H{"error": "Nomor/ID Job hanya boleh berisi angka dan tanda strip (-)."})
+				return
+			}
+		}
+	}
+
 	userID, ok := getUserID(c)
 	if !ok {
 		c.JSON(401, gin.H{"error": "Unauthorized"})
 		return
 	}
 
+	var client models.Client
+	if err := config.DB.First(&client, userID).Error; err != nil {
+		c.JSON(404, gin.H{"error": "Client tidak ditemukan"})
+		return
+	}
+
+	if client.NamaClient == "" || client.Kontak == "" || client.Lokasi == "" || client.JenisUsaha == "" {
+		c.JSON(400, gin.H{"error": "Profil belum lengkap! Harap lengkapi Profil Anda sebelum mem-posting job."})
+		return
+	}
+
 	job.Judul = input.Judul
+	job.JobNo = input.JobNo
 	job.JobDesc = input.JobDesc
 	job.KebutuhanProyek = input.KebutuhanProyek
 	job.KebutuhanSkill = input.KebutuhanSkill
@@ -96,20 +139,25 @@ func CreateJob(c *gin.Context) {
 	c.JSON(200, gin.H{"message": "Job created"})
 }
 
+// Author: Fadhil
+// PBI: KF-04
+// Sprint: Sprint 1
 func GetJobs(c *gin.Context) {
 	var jobs []models.Job
 
-	if err := config.DB.
+	err := config.DB.
 		Preload("Client").
-		Find(&jobs).Error; err != nil {
+		Joins("JOIN clients ON clients.id = jobs.client_id").
+		Where("jobs.status != ? AND clients.status != ?", "dihapus", "suspended").
+		Find(&jobs).Error
 
+	if err != nil {
 		c.JSON(500, gin.H{"error": "Gagal mengambil jobs"})
 		return
 	}
 
 	for i := range jobs {
 		var count int64
-
 		err := config.DB.Model(&models.Application{}).
 			Where("job_id = ?", jobs[i].ID).
 			Count(&count).Error
@@ -117,14 +165,11 @@ func GetJobs(c *gin.Context) {
 		if err != nil {
 			count = 0
 		}
-
 		jobs[i].ApplicationsCount = count
 	}
 
 	var result []gin.H
-
 	for _, job := range jobs {
-
 		var tags []string
 		if job.Tags != "" {
 			_ = json.Unmarshal([]byte(job.Tags), &tags)
@@ -133,6 +178,7 @@ func GetJobs(c *gin.Context) {
 		result = append(result, gin.H{
 			"id":                 job.ID,
 			"judul":              job.Judul,
+			"job_no":             job.JobNo,
 			"job_desc":           job.JobDesc,
 			"kebutuhan_proyek":   job.KebutuhanProyek,
 			"kebutuhan_skill":    job.KebutuhanSkill,
@@ -144,17 +190,14 @@ func GetJobs(c *gin.Context) {
 			"tipe":               job.Tipe,
 			"lokasi_pelaksanaan": job.LokasiPelaksanaan,
 			"tags":               tags,
-
-			"share_job": job.ShareJob,
-			"level":     job.Level,
-
-			"client_id": job.ClientID,
-
+			"share_job":          job.ShareJob,
+			"level":              job.Level,
+			"client_id":          job.ClientID,
 			"client": gin.H{
 				"id":          job.Client.ID,
 				"nama_client": job.Client.NamaClient,
+				"foto_profil": job.Client.FotoProfil,
 			},
-
 			"applications_count": job.ApplicationsCount,
 			"created_at":         job.CreatedAt,
 		})
@@ -165,8 +208,8 @@ func GetJobs(c *gin.Context) {
 
 // Author: Aura
 // PBI: KF-11
-// Sprint: Sprint 1
-
+// Sprint: Sprint 2 
+// NEW - Revisi Bug
 func GetJobDetail(c *gin.Context) {
 	id := c.Param("id")
 
@@ -182,7 +225,6 @@ func GetJobDetail(c *gin.Context) {
 // Author: Danu
 // PBI: KF-03
 // Sprint: Sprint 1
-
 func DeleteJob(c *gin.Context) {
 	id := c.Param("id")
 
@@ -203,16 +245,45 @@ func DeleteJob(c *gin.Context) {
 		return
 	}
 
-	job.Status = "dihapus"
+	tx := config.DB.Begin()
 
-	if err := config.DB.Save(&job).Error; err != nil {
+	if err := tx.Model(&job).Update("status", "dihapus").Error; err != nil {
+		tx.Rollback()
 		c.JSON(500, gin.H{"error": "Gagal menghapus job"})
 		return
 	}
 
-	c.JSON(200, gin.H{"message": "Job dihapus (soft delete)"})
+	if err := tx.Model(&models.Application{}).
+		Where("job_id = ?", job.ID).
+		Update("status", "dihapus").Error; err != nil {
+
+		tx.Rollback()
+		c.JSON(500, gin.H{"error": "Gagal update application"})
+		return
+	}
+
+	if err := tx.Exec("DELETE FROM tasks WHERE project_id IN (SELECT id FROM projects WHERE job_id = ?)", job.ID).Error; err != nil {
+		tx.Rollback()
+		c.JSON(500, gin.H{"error": "Gagal hapus tasks terkait"})
+		return
+	}
+
+	if err := tx.Where("job_id = ?", job.ID).
+		Delete(&models.Project{}).Error; err != nil {
+
+		tx.Rollback()
+		c.JSON(500, gin.H{"error": "Gagal hapus project"})
+		return
+	}
+
+	tx.Commit()
+
+	c.JSON(200, gin.H{"message": "Job, tasks, project, & application berhasil dihapus"})
 }
 
+// Author: Danu
+// PBI: KF-03
+// Sprint: Sprint 1
 func UpdateJob(c *gin.Context) {
 	id := c.Param("id")
 
@@ -235,17 +306,43 @@ func UpdateJob(c *gin.Context) {
 
 	var input struct {
 		Judul             string `json:"judul"`
+		JobNo             string `json:"job_no"`
 		JobDesc           string `json:"job_desc"`
 		KebutuhanProyek   string `json:"kebutuhan_proyek"`
 		KebutuhanSkill    string `json:"kebutuhan_skill"`
 		Budget            string `json:"budget"`
 		LokasiPelaksanaan string `json:"lokasi_pelaksanaan"`
 		Status            string `json:"status"`
+		Kategori          string `json:"kategori"`
+		Tipe              string `json:"tipe"`
+		Level             string `json:"level"`
+		BatasPendidikan   string `json:"batas_pendidikan"`
 	}
 
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
+	}
+	if input.Judul != "" {
+		for _, char := range input.Judul {
+			if !((char >= 'a' && char <= 'z') ||
+				(char >= 'A' && char <= 'Z') ||
+				char == ' ' || char == '-' || char == '&' ||
+				char == '(' || char == ')' || char == ',' ||
+				char == '.' || char == '/') {
+				c.JSON(400, gin.H{"error": "Judul hanya boleh berisi huruf, spasi, dan tanda baca ( - & , . / () ). Angka dan simbol lain tidak diperbolehkan."})
+				return
+			}
+		}
+	}
+
+	if input.JobNo != "" {
+		for _, char := range input.JobNo {
+			if (char < '0' || char > '9') && char != '-' {
+				c.JSON(400, gin.H{"error": "Nomor/ID Job hanya boleh berisi angka dan tanda strip (-)."})
+				return
+			}
+		}
 	}
 
 	if job.Status == "dihapus" {
@@ -255,12 +352,17 @@ func UpdateJob(c *gin.Context) {
 
 	updateData := map[string]interface{}{
 		"judul":              input.Judul,
+		"job_no":             input.JobNo,
 		"job_desc":           input.JobDesc,
 		"kebutuhan_proyek":   input.KebutuhanProyek,
 		"kebutuhan_skill":    input.KebutuhanSkill,
 		"budget":             input.Budget,
 		"lokasi_pelaksanaan": input.LokasiPelaksanaan,
 		"status":             input.Status,
+		"kategori":           input.Kategori,
+		"tipe":               input.Tipe,
+		"level":              input.Level,
+		"batas_pendidikan":   input.BatasPendidikan,
 	}
 
 	if err := config.DB.Model(&models.Job{}).
@@ -273,7 +375,3 @@ func UpdateJob(c *gin.Context) {
 
 	c.JSON(200, gin.H{"message": "Job updated"})
 }
-
-
-
-
