@@ -40,6 +40,8 @@ func CreateSupportTicket(c *gin.Context) {
 }
 
 // Author: Hanif
+// Author: Arga
+// PBI: KF-17
 // PBI: KF-17
 // Sprint: Sprint 2
 func GetSupportTickets(c *gin.Context) {
