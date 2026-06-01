@@ -1,6 +1,10 @@
 <!-- Author: Fadhil -->
 <!-- PBI: KF-02 -->
 <!-- Sprint: Sprint 1 -->
+
+<!-- Author: Arga -->
+<!-- PBI: KF-01 -->
+<!-- Sprint: Sprint 1 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -112,6 +116,11 @@ async function login() {
 
   if (!email || !password) {
     showError("Email dan password wajib diisi")
+    return
+  }
+
+  if (!email.toLowerCase().endsWith("@gmail.com")) {
+    showError("User Tidak Ditemukan")
     return
   }
 
