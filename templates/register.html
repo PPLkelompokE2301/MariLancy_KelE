@@ -1,6 +1,10 @@
 <!-- Author: Fadhil -->
 <!-- PBI: KF-02 -->
 <!-- Sprint: Sprint 1 -->
+
+<!-- Author: Arga -->
+<!-- PBI: KF-01 -->
+<!-- Sprint: Sprint 1 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -56,7 +60,6 @@
       class="w-full mb-6 p-4 rounded-xl text-black">
       <option value="freelancer">Freelancer</option>
       <option value="client">Client</option>
-      <option value="admin">Admin</option>
     </select>
 
     <button onclick="register()"
@@ -82,6 +85,15 @@ async function register() {
   const password = document.getElementById("password").value
   const role = document.getElementById("role").value
 
+  if (!nama || !email || !password) {
+    alert("Semua field wajib diisi!")
+    return
+  }
+
+  if (!email.toLowerCase().endsWith("@gmail.com")) {
+    alert("Hanya email dengan format @gmail.com yang dapat didaftarkan.")
+    return
+  }
   const res = await fetch("/register", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -91,12 +103,12 @@ async function register() {
   const data = await res.json()
 
   if (!res.ok) {
-    alert("Email Sudah Terdaftar")
+    alert(data.error || "Pendaftaran gagal.")
     return
   }
 
   alert("Register berhasil, silakan login")
-  window.location.href = "/"
+  window.location.href = "/login"
 }
 </script>
 
