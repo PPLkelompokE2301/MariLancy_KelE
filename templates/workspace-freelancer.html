@@ -1,7 +1,4 @@
 <!DOCTYPE html>
-<!-- Author: Rania -->
-<!-- PBI: KF-08 -->
-<!-- Sprint: Sprint 1 -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -20,11 +17,6 @@
     
     .input-form { border: 1px solid #d1d5db; padding: 10px 14px; border-radius: 8px; width: 100%; font-size: 14px; outline: none; transition: 0.2s; }
     .input-form:focus { border-color: #2b9c96; }
-    body {
-      font-family: 'Poppins', sans-serif;
-      background-color: #f8fafc;
-    }
-
     .sidebar-scroll::-webkit-scrollbar {
       width: 5px;
     }
@@ -32,124 +24,8 @@
       background: #cbd5e1;
       border-radius: 10px;
     }
-
-    .custom-checkbox {
-      width: 16px;
-      height: 16px;
-      border-radius: 4px;
-      border: 1px solid #cbd5e1;
-      cursor: pointer;
-    }
-
-    .job-card-modern {
-      background: #ffffff;
-      border-radius: 16px;
-      padding: 24px;
-      margin-bottom: 20px;
-      border: 1px solid #f1f5f9;
-      box-shadow: 0 2px 15px rgba(0, 0, 0, 0.02);
-      transition: 0.3s;
-    }
-
-    .job-card-modern:hover {
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
-      border-color: #e2e8f0;
-    }
-
-    .btn-teal {
-      background-color: #2b9c96;
-      color: white;
-    }
-    .btn-teal:hover {
-      background-color: #23827d;
-    }
-
-    .footer-dark {
-      background-color: #000000;
-      color: #e5e7eb;
-      padding: 60px 40px 30px 40px;
-      font-size: 14px;
-    }
-
-    .footer-container {
-      max-width: 1200px;
-      margin: 0 auto;
-      display: grid;
-      grid-template-columns: 2fr 1fr 1fr 1.5fr;
-      gap: 40px;
-      padding-bottom: 40px;
-      border-bottom: 1px solid #1f2937;
-    }
-
-    .footer-col h4 {
-      color: white;
-      font-weight: 600;
-      font-size: 16px;
-      margin-bottom: 20px;
-    }
-
-    .footer-col ul {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-
-    .footer-col ul li {
-      margin-bottom: 12px;
-      color: #9ca3af;
-      cursor: pointer;
-      transition: 0.2s;
-    }
-
-    .footer-col ul li:hover {
-      color: white;
-    }
-
-    .newsletter-form {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-      margin-top: 20px;
-    }
-
-    .newsletter-input {
-      background-color: transparent;
-      border: 1px solid #4b5563;
-      color: white;
-      padding: 12px 15px;
-      border-radius: 8px;
-      font-size: 13px;
-      outline: none;
-    }
-
-    .newsletter-input:focus {
-      border-color: #2b9c96;
-    }
-
-    .newsletter-btn {
-      background-color: #2b9c96;
-      color: white;
-      border: none;
-      padding: 12px;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: 0.2s;
-    }
-
-    .newsletter-btn:hover {
-      background-color: #23827d;
-    }
-
-    .footer-bottom {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding-top: 20px;
-      display: flex;
-      justify-content: space-between;
-      color: #6b7280;
-      font-size: 12px;
-    }
+    .btn-teal { background-color: #2b9c96; color: white; }
+    .btn-teal:hover { background-color: #23827d; }
   </style>
 </head>
 <body>
@@ -163,16 +39,17 @@
 
     <div class="flex-1 flex justify-center gap-8 text-sm font-medium">
       <a href="/freelancer" onclick="setActive(this)" class="nav-link text-gray-400 hover:text-white">Dashboard</a>
-      <a href="/freelancer/projects" onclick="setActive(this)" class="nav-link text-gray-400 hover:text-white">Proyek</a>
-      <a href="/freelancer/profile/view" onclick="setActive(this)" class="nav-link text-gray-400 hover:text-white">Lamaran</a>
-      <a href="#message" onclick="setActive(this)" class="nav-link text-gray-400 hover:text-white">Pesan</a>
+      <a href="/freelancer/projects" onclick="setActive(this)" class="nav-link text-gray-400 hover:text-white">Projects</a>
+      <a href="/freelancer/profile/view" onclick="setActive(this)" class="nav-link text-gray-400 hover:text-white">Applications</a>
+      <a href="/chat" onclick="setActive(this)" class="nav-link text-gray-400 hover:text-white">Messages</a>
     </div>
 
     <div class="flex-1 flex justify-end items-center gap-5 ">
       <span id="userGreeting" class="text-sm font-medium"></span>
       <div class="profile-box cursor-pointer" onclick="goProfile()">
         <img id="profile_img"
-          src="https://ui-avatars.com/api/?name=User"
+          src="https://ui-avatars.com/api/?name=User&background=2b9c96&color=fff"
+          onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=User&background=2b9c96&color=fff';"
           class="profile-img w-10 h-10 rounded-full object-cover" alt="User">
       </div>
       <button onclick="logout()" class="btn-teal px-5 py-2 rounded-md text-sm font-semibold transition">
@@ -187,14 +64,14 @@
     </div>
   </nav>
 
-  <div class="max-w-7xl mx-auto px-4 py-10">
+  <div class="max-w-7xl mx-auto px-4 py-10 mt-16">
     
     <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-6">
       <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-4 gap-4">
         <div>
           <span id="projectBadge" class="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md mb-2 inline-block">Status</span>
           <h1 class="text-2xl font-bold text-gray-800" id="projectName">Memuat Proyek...</h1>
-          <p class="text-sm text-gray-500 mt-1">Klien: <span id="clientName" class="font-medium text-gray-700">-</span></p>
+          <p class="text-sm text-gray-500 mt-1">Client: <span id="clientName" class="font-medium text-gray-700">-</span></p>
         </div>
         
         <div class="text-right flex flex-col items-end gap-3 w-full md:w-auto">
@@ -203,9 +80,14 @@
               <span class="text-3xl font-bold text-[#2b9c96]" id="progressText">0%</span>
               <p class="text-xs text-gray-500 font-medium">Progress Penyelesaian</p>
             </div>
-            <button id="btnCompleteProject" onclick="completeProject()" disabled class="px-5 py-2.5 bg-gray-300 text-white rounded-xl text-sm font-bold shadow-sm cursor-not-allowed transition-all duration-300">
-              Menunggu Task...
-            </button>
+            <div class="flex flex-col gap-2 items-end">
+                <button id="btnCompleteProject" onclick="completeProject()" disabled class="px-5 py-2.5 bg-gray-300 text-white rounded-xl text-sm font-bold shadow-sm cursor-not-allowed transition-all duration-300">
+                  Menunggu Task...
+                </button>
+                <a href="#" id="btnChatClient" class="hidden bg-gray-800 hover:bg-black text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm transition items-center gap-2">
+                  <i class="ri-message-3-line"></i> Hubungi Client
+                </a>
+            </div>
           </div>
         </div>
       </div>
@@ -230,6 +112,12 @@
         </div>
       </div>
       <p id="submissionStatusInfo" class="text-xs font-semibold text-teal-600 mt-3 hidden"><i class="ri-check-double-line"></i> Bukti hasil kerja sudah tersimpan.</p>
+      <div id="uploadedDocumentContainer" class="mt-4 pt-4 border-t border-teal-100 hidden">
+         <p class="text-xs font-bold text-gray-700 mb-2">Dokumen / Link Terkirim:</p>
+         <a id="btnViewDocument" href="#" target="_blank" class="px-4 py-2 bg-[#2b9c96] text-white rounded-lg text-sm font-semibold shadow-sm hover:bg-[#23827d] transition inline-flex items-center gap-2">
+           <i class="ri-file-text-line"></i> Lihat Dokumen Hasil Kerja
+         </a>
+      </div>
     </div>
 
     <div class="flex justify-end gap-3 mb-6">
@@ -277,76 +165,164 @@
     const projectId = urlParams.get("project_id") || 1; 
     const token = localStorage.getItem("token");
 
+    const userId = localStorage.getItem("userId") || "guest";
     let tasks = [];
     let isProjectCompleted = false;
     let currentProgress = 0;
+
+    async function safeFetch(url, options = {}) {
+      const res = await fetch(url, options);
+      if (res.status === 401) {
+        alert("Session habis");
+        localStorage.clear();
+        window.location.href = "/";
+        return null;
+      }
+      if (res.status === 403) {
+        alert("Akses ditolak");
+        window.location.href = "/";
+        return null;
+      }
+      try { return await res.json(); } catch { return null; }
+    }
 
     async function loadProjectData() {
       const res = await fetch(`/api/projects/${projectId}`, {
         headers: { "Authorization": "Bearer " + token }
       });
+      
       if (res.ok) {
         const data = await res.json();
-        document.getElementById("projectName").innerText = data.project.job.judul;
-        document.getElementById("clientName").innerText = data.project.client.nama_client;
-        
-        isProjectCompleted = data.project.status === 'completed';
-        currentProgress = data.progress;
+        const p = data.project; 
 
+        const jobJudul = p.job.judul || "-";
+        const jobNo = p.job.job_no;
+        const displayJudul = jobNo 
+            ? `${jobJudul} <span class="text-lg font-medium text-gray-500 ml-2">(${jobNo})</span>` 
+            : jobJudul;
+        document.getElementById("projectName").innerHTML = displayJudul;
+
+        const rawDate = p.end_date || p.deadline || p.EndDate || (p.job && p.job.deadline);
+        const updatedDate = p.updated_at || p.UpdatedAt;
+        const overdue = calculateOverdue(rawDate, p.status, updatedDate);
+        
+        const badgeContainer = document.getElementById("projectBadge").parentElement;
+        const oldTag = document.getElementById("overdueTag");
+        if (oldTag) oldTag.remove();
+
+        if (overdue) {
+            badgeContainer.insertAdjacentHTML('beforeend', `<span id="overdueTag" class="ml-2 text-[10px] font-bold px-2 py-1 rounded shadow-sm ${overdue.class}">${overdue.label}</span>`);
+        }
+
+        const clientNameText = p.client?.nama_client || "Klien Anonim";
+        let deadlineText = "";
+        if (p.end_date && !p.end_date.startsWith("0001")) {
+            const deadlineDate = new Date(p.end_date).toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
+            deadlineText = ` <span class="mx-2 text-gray-300">|</span> <span class="text-xs text-red-500 font-bold"><i class="ri-calendar-event-line"></i> Deadline: ${deadlineDate}</span>`;
+        }
+        document.getElementById("clientName").innerHTML = `${clientNameText}${deadlineText}`;
+        
+        isProjectCompleted = p.status === 'completed';
         const badge = document.getElementById("projectBadge");
         if (isProjectCompleted) {
             badge.innerText = "Proyek Selesai";
             badge.className = "text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md mb-2 inline-block bg-green-100 text-green-700";
             
-            document.getElementById("submissionLink").value = data.project.submission_link || "";
+            document.getElementById("submissionLink").value = p.submission_link || "";
             document.getElementById("submissionLink").disabled = true;
             document.getElementById("submissionFile").disabled = true;
             document.getElementById("submissionStatusInfo").classList.remove("hidden");
+
+            const submissionUrl = p.submission_link || p.submission_file;
+            if (submissionUrl) {
+                document.getElementById("uploadedDocumentContainer").classList.remove("hidden");
+                document.getElementById("btnViewDocument").href = submissionUrl.startsWith('http') ? submissionUrl : '/' + submissionUrl; 
+            }
         } else {
             badge.innerText = "Proyek Aktif";
             badge.className = "text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md mb-2 inline-block bg-blue-100 text-blue-700";
         }
 
+        currentProgress = data.progress;
         document.getElementById("progressText").innerText = data.progress + "%";
         document.getElementById("progressBar").style.width = data.progress + "%";
 
-        tasks = data.project.tasks || [];
-        
-        validateCompletionRules(); 
+        const btnChat = document.getElementById("btnChatClient");
+        if (btnChat && p.client?.ID) {
+            btnChat.href = `/chat/room?project_id=${projectId}&target_id=${p.client.ID}`;
+            btnChat.classList.remove("hidden");
+            btnChat.classList.add("flex");
+        }
 
+        tasks = p.tasks || [];
+        validateCompletionRules(); 
         renderListView();
         renderKanbanView();
       }
     }
 
+    function calculateOverdue(endDateStr, status, updatedAtStr) {
+        if (!endDateStr || String(endDateStr).startsWith("0001")) return null;
+
+        const deadline = new Date(endDateStr);
+        if (isNaN(deadline.getTime())) return null;
+        deadline.setHours(0, 0, 0, 0); 
+
+        if (status === 'completed') {
+            if (!updatedAtStr || String(updatedAtStr).startsWith("0001")) return null;
+            
+            const submitDate = new Date(updatedAtStr);
+            submitDate.setHours(0, 0, 0, 0);
+
+            const diffTime = deadline.getTime() - submitDate.getTime();
+            const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays < 0) { 
+                return { label: `DIKUMPULKAN TERLAMBAT (${Math.abs(diffDays)} HARI)`, class: "bg-red-600 text-white shadow-sm" };
+            }
+        } else {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const diffTime = deadline.getTime() - today.getTime();
+            const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays < 0) { 
+                return { label: `TUGAS TERLAMBAT (${Math.abs(diffDays)} HARI)`, class: "bg-red-600 text-white shadow-sm animate-pulse" };
+            }
+        }
+        
+        return null;
+    }
+
     function setActive(el) {
-    const links = document.querySelectorAll('.nav-link');
+        const links = document.querySelectorAll('.nav-link');
 
-    links.forEach(link => {
-      link.classList.remove('border-b-2', 'border-teal-500', 'text-white');
-      link.classList.add('text-gray-400');
-    });
+        links.forEach(link => {
+          link.classList.remove('border-b-2', 'border-teal-500', 'text-white');
+          link.classList.add('text-gray-400');
+        });
 
-    el.classList.remove('text-gray-400');
-    el.classList.add('text-white', 'border-b-2', 'border-teal-500');
-  }
+        el.classList.remove('text-gray-400');
+        el.classList.add('text-white', 'border-b-2', 'border-teal-500');
+    }
 
-  function setActiveByURL() {
-    const links = document.querySelectorAll('.nav-link');
-    const currentPath = window.location.pathname;
+    function setActiveByURL() {
+        const links = document.querySelectorAll('.nav-link');
+        const currentPath = window.location.pathname;
 
-    links.forEach(link => {
-      if (link.getAttribute('href') === currentPath) {
-        link.classList.add('border-b-2', 'border-teal-500', 'text-white');
-        link.classList.remove('text-gray-400');
-      } else {
-        link.classList.remove('border-b-2', 'border-teal-500', 'text-white');
-        link.classList.add('text-gray-400');
-      }
-    });
-  }
+        links.forEach(link => {
+          if (link.getAttribute('href') === currentPath) {
+            link.classList.add('border-b-2', 'border-teal-500', 'text-white');
+            link.classList.remove('text-gray-400');
+          } else {
+            link.classList.remove('border-b-2', 'border-teal-500', 'text-white');
+            link.classList.add('text-gray-400');
+          }
+        });
+    }
 
-  setActiveByURL();
+    setActiveByURL();
 
     function validateCompletionRules() {
       const btnComplete = document.getElementById("btnCompleteProject");
@@ -376,32 +352,7 @@
           btnComplete.disabled = true;
       }
     }
-    function setActive(el) {
-      const links = document.querySelectorAll('.nav-link');
 
-      links.forEach(link => {
-        link.classList.remove('border-b-2', 'border-teal-500', 'text-white');
-        link.classList.add('text-gray-400');
-      });
-
-      el.classList.remove('text-gray-400');
-      el.classList.add('text-white', 'border-b-2', 'border-teal-500');
-    }
-
-    function setActiveByURL() {
-      const links = document.querySelectorAll('.nav-link');
-      const currentPath = window.location.pathname;
-
-      links.forEach(link => {
-        if (link.getAttribute('href') === currentPath) {
-          link.classList.add('border-b-2', 'border-teal-500', 'text-white');
-          link.classList.remove('text-gray-400');
-        } else {
-          link.classList.remove('border-b-2', 'border-teal-500', 'text-white');
-          link.classList.add('text-gray-400');
-        }
-      });
-    }
     async function loadUserProfile() {
         try {
             const role = localStorage.getItem("role");
@@ -415,15 +366,25 @@
 
             const data = await res.json();
 
+            localStorage.setItem("client_id", data.ID);
             const fullName = data.nama_client || data.nama || "User";
             const firstName = fullName.split(' ')[0];
 
             document.getElementById("userGreeting").innerText = "Hi, " + firstName + "!";
 
-            const profileImgUrl = data.foto_profil || data.galeri || 
-                                `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=2b9c96&color=fff&bold=true`;
+            const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(firstName)}&background=2b9c96&color=fff`;
+            const profileImgElement = document.getElementById("profile_img");
+            const profileImgUrl = data.foto_profil || data.galeri;
 
-            document.getElementById("profile_img").src = profileImgUrl;
+            if (profileImgUrl && profileImgUrl !== "") {
+                profileImgElement.src = profileImgUrl;
+                profileImgElement.onerror = function() {
+                    this.onerror = null;
+                    this.src = fallbackAvatar;
+                };
+            } else {
+                profileImgElement.src = fallbackAvatar;
+            }
 
         } catch (err) {
             console.error("Error load profile:", err);
@@ -432,7 +393,10 @@
     }
 
     async function completeProject() {
-        if (!confirm("Apakah Anda yakin ingin menyelesaikan proyek ini? Pastikan file/link sudah benar.")) return;
+      const confirmMsg = "Apakah Anda yakin ingin mengirim dokumen dan menyelesaikan proyek ini?\n\nTekan 'OK' untuk mengunggah dokumen.\nTekan 'Cancel' untuk membatalkan.";  
+      if (!confirm(confirmMsg)) {
+            return;
+      }
         
         const linkVal = document.getElementById("submissionLink").value;
         const fileInput = document.getElementById("submissionFile").files[0];
@@ -487,6 +451,7 @@
         document.getElementById('btnList').classList.replace('text-white', 'text-gray-700');
       }
     }
+    
     async function updatePriorityAPI(taskId, newPriority) {
         if (isProjectCompleted) return;
         
@@ -508,23 +473,34 @@
         tasks.forEach(task => {
             const isChecked = task.status === 'done' ? 'checked' : '';
             const textStyle = task.status === 'done' ? 'line-through text-gray-400' : 'text-gray-800 font-medium';
-            
+
             const pColor = task.priority === 'high' ? 'text-red-600 bg-red-50' : 
-                        task.priority === 'medium' ? 'text-orange-600 bg-orange-50' : 'text-blue-600 bg-blue-50';
+                         task.priority === 'medium' ? 'text-orange-600 bg-orange-50' : 'text-blue-600 bg-blue-50';
+
+            const sColor = task.status === 'done' ? 'text-green-700 bg-green-100' :
+                           task.status === 'in_progress' ? 'text-blue-700 bg-blue-100' : 'text-gray-600 bg-gray-100';
+
+            const disableState = isProjectCompleted ? 'disabled' : '';
 
             container.innerHTML += `
             <div class="flex items-center justify-between p-4 border border-gray-100 rounded-xl hover:bg-gray-50 transition">
                 <label class="flex items-center gap-4 cursor-pointer flex-1">
-                <input type="checkbox" class="custom-checkbox" ${isChecked} onchange="toggleCheckbox(${task.id}, this.checked)">
-                <span class="${textStyle}">${task.title}</span>
+                  <input type="checkbox" class="custom-checkbox" ${isChecked} onchange="toggleCheckbox(${task.id}, this.checked)" ${disableState}>
+                  <span class="${textStyle}">${task.title}</span>
                 </label>
+                
                 <div class="flex items-center gap-3">
-                <select onchange="updatePriorityAPI(${task.id}, this.value)" class="text-[10px] font-bold uppercase p-1 rounded border-none ${pColor} focus:ring-0 cursor-pointer">
-                    <option value="low" ${task.priority === 'low' ? 'selected' : ''}>Low</option>
-                    <option value="medium" ${task.priority === 'medium' ? 'selected' : ''}>Medium</option>
-                    <option value="high" ${task.priority === 'high' ? 'selected' : ''}>High</option>
-                </select>
-                <span class="text-xs px-2 py-1 bg-gray-100 text-gray-500 rounded-md uppercase tracking-wider">${task.status.replace('_', ' ')}</span>
+                  <select onchange="updatePriorityAPI(${task.id}, this.value)" ${disableState} class="text-[10px] font-bold uppercase p-1 rounded border-none ${pColor} focus:ring-0 cursor-pointer">
+                      <option value="low" ${task.priority === 'low' ? 'selected' : ''}>Low</option>
+                      <option value="medium" ${task.priority === 'medium' ? 'selected' : ''}>Medium</option>
+                      <option value="high" ${task.priority === 'high' ? 'selected' : ''}>High</option>
+                  </select>
+                  
+                  <select onchange="updateStatusAPI(${task.id}, this.value)" ${disableState} class="text-[10px] font-bold uppercase p-1 px-2 rounded border-none ${sColor} focus:ring-0 cursor-pointer outline-none text-center">
+                      <option value="todo" ${task.status === 'todo' ? 'selected' : ''}>TO DO</option>
+                      <option value="in_progress" ${task.status === 'in_progress' ? 'selected' : ''}>IN PROGRESS</option>
+                      <option value="done" ${task.status === 'done' ? 'selected' : ''}>DONE</option>
+                  </select>
                 </div>
             </div>
             `;
@@ -536,6 +512,7 @@
       const newStatus = isChecked ? 'done' : 'todo';
       updateStatusAPI(taskId, newStatus);
     }
+    
     function goHome() {
       const currentRole = localStorage.getItem("role");
       if (currentRole === "freelancer") {
@@ -600,9 +577,101 @@
         updateStatusAPI(taskId, newStatus);
       }
     }
+
+    function getReadNotifs() { 
+        return JSON.parse(localStorage.getItem(`readNotifs_${userId}`)) || []; 
+    }
+
+    function getReadMessageNotifs() { 
+        return JSON.parse(localStorage.getItem("readMessageNotifs")) || []; 
+    }
+
+    async function loadNotificationCount() {
+
+      const appRes = await fetch("/freelancer/applications", {
+        headers: { "Authorization": "Bearer " + token }
+      });
+
+      const appData = await appRes.json();
+
+      let unreadCount = 0;
+
+      const readNotifs = getReadNotifs();
+
+      appData.forEach(app => {
+        const job = app.job || app.Job || {};
+
+        let isNotif = false;
+
+        if (app.status === "accepted" || app.status === "rejected") {
+          isNotif = true;
+        } else if (app.status === "pending" &&
+          (job.status === "dihapus" || job.status === "ditutup")) {
+          isNotif = true;
+        }
+
+        if (isNotif && !readNotifs.includes(app.id)) {
+          unreadCount++;
+        }
+      });
+
+      try {
+        const msgRes = await fetch("/api/chat/list?role=freelancer", {
+          headers: { "Authorization": "Bearer " + token }
+        });
+
+        if (msgRes.ok) {
+          const conversations = await msgRes.json();
+          const readMessages = getReadMessageNotifs();
+
+          conversations.forEach(conv => {
+            const messageKey =
+              `${conv.project_id}-${conv.target_user_id}-${conv.created_at}`;
+
+            if (!readMessages.includes(messageKey)) {
+              unreadCount++;
+            }
+          });
+        }
+
+      } catch (err) {
+        console.error(err);
+      }
+
+      const badge = document.getElementById("notifBadge");
+
+      if (unreadCount > 0) {
+        badge.innerText = unreadCount;
+        badge.classList.remove("hidden");
+      } else {
+        badge.classList.add("hidden");
+      }
+    }
     
+    function goProfile() {
+      const currentRole = localStorage.getItem("role");
+      if (currentRole === "freelancer") window.location.href = "/freelancer/profile/view"
+      else if (currentRole === "client") window.location.href = "/client/profile/view"
+    }
+
+    function goNotification() {
+      const currentRole = localStorage.getItem("role");
+      if (currentRole === "freelancer") window.location.href = "/freelancer/notification"
+      else if (currentRole === "client") window.location.href = "/client/notification"
+    }
+    
+    function logout() { 
+        localStorage.removeItem("token");
+        localStorage.removeItem("role");
+        window.location.href = "/"; 
+    }
+
+    setInterval(() => {
+      if (token) loadNotificationCount();
+    }, 3000);
     loadUserProfile()
     loadProjectData();
+    loadNotificationCount(); 
   </script>
 </body>
 </html>

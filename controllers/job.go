@@ -38,7 +38,8 @@ func getUserID(c *gin.Context) (uint, bool) {
 
 // Author: Aura
 // PBI: KF-03
-// Sprint: Sprint 1
+// Sprint: Sprint 2 
+// NEW - Revisi Bug
 func CreateJob(c *gin.Context) {
 	var job models.Job
 
@@ -207,7 +208,8 @@ func GetJobs(c *gin.Context) {
 
 // Author: Aura
 // PBI: KF-11
-// Sprint: Sprint 1
+// Sprint: Sprint 2 
+// NEW - Revisi Bug
 func GetJobDetail(c *gin.Context) {
 	id := c.Param("id")
 

@@ -1,44 +1,14 @@
-package controllers
-
-import (
-	"fmt"
-	"net/http"
-	"path/filepath"
-	"time"
-
-	"marilancy/config"
-	"marilancy/models"
-
-	"github.com/gin-gonic/gin"
-)
-
-// Author: Rania
-// PBI: KF-08
-// Sprint: Sprint 1
-func GetProjectDetail(c *gin.Context) {
-	projectID := c.Param("id")
-	var project models.Project
-
-	if err := config.DB.Preload("Job").Preload("Client").Preload("Freelancer").Preload("Tasks").Where("id = ?", projectID).First(&project).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Project tidak ditemukan"})
-		return
-	}
-
-	totalTasks := len(project.Tasks)
-	completedTasks := 0
-	for _, task := range project.Tasks {
-		if task.Status == "done" {
-			completedTasks++
-		}
-	}
-
-	progress := 0
-	if totalTasks > 0 {
-		progress = (completedTasks * 100) / totalTasks
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"project":  project,
-		"progress": progress,
-	})
+// Author: Fadhil
+// PBI: KF-12
+// Sprint: Sprint 2
+type Transaction struct {
+	ID            uint      `gorm:"primaryKey" json:"id"`
+	ProjectID     uint      `json:"project_id"`
+	Project       Project   `gorm:"foreignKey:ProjectID" json:"project"`
+	ClientID      uint      `json:"client_id"`
+	FreelancerID  uint      `json:"freelancer_id"`
+	Nominal       float64   `json:"nominal"`
+	BuktiTransfer string    `gorm:"type:varchar(255)" json:"bukti_transfer"`
+	Status        string    `gorm:"default:'pending'" json:"status"`
+	CreatedAt     time.Time `json:"created_at"`
 }
