@@ -57,6 +57,13 @@ func SetupRoutes(r *gin.Engine) {
 		c.HTML(200, "my-projects.html", nil)
 	})
 
+	// Author: Fadhil
+	// PBI: KF-12
+	// Sprint: Sprint 2
+	r.GET("/freelancer/verifikasi-pembayaran.html", func(c *gin.Context) {
+	c.HTML(200, "verifikasi-pembayaran.html", nil)
+	})
+
 	// Author: Danu
 	// PBI: KF-10
 	// Sprint: Sprint 2
@@ -241,8 +248,8 @@ func SetupRoutes(r *gin.Engine) {
 		admin.GET("/freelancers", controllers.GetFreelancers)
 		admin.GET("/clients", controllers.GetClients)
 
-		admin.DELETE("/freelancers/:id", controllers.DeleteFreelancer)
-		admin.DELETE("/clients/:id", controllers.DeleteClient)
+		admin.PUT("/freelancers/:id/suspend", controllers.SuspendFreelancer)
+		admin.PUT("/clients/:id/suspend", controllers.SuspendClient)
 
 		admin.GET("/jobs", controllers.AdminGetJobs)
 		admin.DELETE("/jobs/:id", controllers.DeleteJobs)

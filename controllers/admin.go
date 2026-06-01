@@ -50,22 +50,49 @@ func GetClients(c *gin.Context) {
 
 // Author: Arga
 // PBI: KF-17
-// Sprint: Sprint 1
-func DeleteFreelancer(c *gin.Context) {
+// Sprint: Sprint 2
+func SuspendFreelancer(c *gin.Context) {
 	id := c.Param("id")
-	if err := config.DB.Delete(&models.Freelancer{}, id).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal hapus"})
+	var user models.Freelancer
+
+	if err := config.DB.First(&user, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Freelancer tidak ditemukan"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"msg": "Berhasil dihapus"})
+
+	newStatus := "suspended"
+	if user.Status == "suspended" {
+		newStatus = "active"
+	}
+
+	config.DB.Model(&user).Update("status", newStatus)
+	c.JSON(http.StatusOK, gin.H{"msg": "Status akun berhasil diubah menjadi " + newStatus})
+}
+
+func SuspendClient(c *gin.Context) {
+	id := c.Param("id")
+	var user models.Client
+
+	if err := config.DB.First(&user, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Client tidak ditemukan"})
+		return
+	}
+
+	newStatus := "suspended"
+	if user.Status == "suspended" {
+		newStatus = "active"
+	}
+
+	config.DB.Model(&user).Update("status", newStatus)
+	c.JSON(http.StatusOK, gin.H{"msg": "Status akun berhasil diubah menjadi " + newStatus})
 }
 
 // Author: Arga
 // PBI: KF-17
 // Sprint: Sprint 1
-func DeleteClient(c *gin.Context) {
+func DeleteFreelancer(c *gin.Context) {
 	id := c.Param("id")
-	if err := config.DB.Delete(&models.Client{}, id).Error; err != nil {
+	if err := config.DB.Delete(&models.Freelancer{}, id).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal hapus"})
 		return
 	}
