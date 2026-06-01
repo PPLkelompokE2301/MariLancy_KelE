@@ -9,6 +9,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// Author: Hanif
+// PBI: KF-17
+// Sprint: Sprint 2
 func CreateSupportTicket(c *gin.Context) {
 	kontakRaw := c.PostForm("kontak")
 	kontakClean := CleanPhoneNumber(kontakRaw)
@@ -36,6 +39,11 @@ func CreateSupportTicket(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Laporan berhasil dikirim!"})
 }
 
+// Author: Hanif
+// Author: Arga
+// PBI: KF-17
+// PBI: KF-17
+// Sprint: Sprint 2
 func GetSupportTickets(c *gin.Context) {
 	var tickets []models.SupportTicket
 
@@ -47,9 +55,10 @@ func GetSupportTickets(c *gin.Context) {
 	c.JSON(http.StatusOK, tickets)
 }
 
-
+// Author: Hanif
+// PBI: KF-17
+// Sprint: Sprint 2
 func CleanPhoneNumber(phone string) string {
 	re := regexp.MustCompile(`[^\d]`)
 	return re.ReplaceAllString(phone, "")
 }
-
