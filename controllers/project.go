@@ -16,7 +16,8 @@ import (
 
 // Author: Aura
 // PBI: KF-11
-// Sprint: Sprint 1
+// Sprint: Sprint 2
+// NEW - Revisi Bug
 func GetProjectDetail(c *gin.Context) {
 	projectID := c.Param("id")
 	var project models.Project
