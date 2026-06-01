@@ -8,9 +8,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// Author: Arga
-// PBI: KF-17
-// Sprint: Sprint 2
 func AdminDashboardData(c *gin.Context) {
 	var totalFreelancers, totalClients, totalJobs int64
 	config.DB.Model(&models.Freelancer{}).Count(&totalFreelancers)
@@ -24,9 +21,6 @@ func AdminDashboardData(c *gin.Context) {
 	})
 }
 
-// Author: Arga
-// PBI: KF-17
-// Sprint: Sprint 1
 func GetFreelancers(c *gin.Context) {
 	var users []models.Freelancer
 	if err := config.DB.Find(&users).Error; err != nil {
@@ -36,9 +30,6 @@ func GetFreelancers(c *gin.Context) {
 	c.JSON(http.StatusOK, users)
 }
 
-// Author: Arga
-// PBI: KF-17
-// Sprint: Sprint 1
 func GetClients(c *gin.Context) {
 	var clients []models.Client
 	if err := config.DB.Find(&clients).Error; err != nil {
@@ -48,33 +39,42 @@ func GetClients(c *gin.Context) {
 	c.JSON(http.StatusOK, clients)
 }
 
-// Author: Arga
-// PBI: KF-17
-// Sprint: Sprint 1
-func DeleteFreelancer(c *gin.Context) {
+func SuspendFreelancer(c *gin.Context) {
 	id := c.Param("id")
-	if err := config.DB.Delete(&models.Freelancer{}, id).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal hapus"})
+	var user models.Freelancer
+
+	if err := config.DB.First(&user, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Freelancer tidak ditemukan"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"msg": "Berhasil dihapus"})
+
+	newStatus := "suspended"
+	if user.Status == "suspended" {
+		newStatus = "active"
+	}
+
+	config.DB.Model(&user).Update("status", newStatus)
+	c.JSON(http.StatusOK, gin.H{"msg": "Status akun berhasil diubah menjadi " + newStatus})
 }
 
-// Author: Arga
-// PBI: KF-17
-// Sprint: Sprint 1
-func DeleteClient(c *gin.Context) {
+func SuspendClient(c *gin.Context) {
 	id := c.Param("id")
-	if err := config.DB.Delete(&models.Client{}, id).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal hapus"})
+	var user models.Client
+
+	if err := config.DB.First(&user, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Client tidak ditemukan"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"msg": "Berhasil dihapus"})
+
+	newStatus := "suspended"
+	if user.Status == "suspended" {
+		newStatus = "active"
+	}
+
+	config.DB.Model(&user).Update("status", newStatus)
+	c.JSON(http.StatusOK, gin.H{"msg": "Status akun berhasil diubah menjadi " + newStatus})
 }
 
-// Author: Arga
-// PBI: KF-03
-// Sprint: Sprint 1
 func AdminGetJobs(c *gin.Context) {
 	var jobs []models.Job
 	if err := config.DB.Preload("Client").Find(&jobs).Error; err != nil {
@@ -84,9 +84,6 @@ func AdminGetJobs(c *gin.Context) {
 	c.JSON(http.StatusOK, jobs)
 }
 
-// Author: Arga
-// PBI: KF-03
-// Sprint: Sprint 1
 func DeleteJobs(c *gin.Context) {
 	id := c.Param("id")
 	if err := config.DB.Model(&models.Job{}).Where("id = ?", id).Update("status", "dihapus").Error; err != nil {
@@ -96,9 +93,6 @@ func DeleteJobs(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"msg": "Job berhasil disembunyikan"})
 }
 
-// Author: Arga
-// PBI: KF-03
-// Sprint: Sprint 1
 func RestoreJobs(c *gin.Context) {
 	id := c.Param("id")
 	if err := config.DB.Model(&models.Job{}).Where("id = ?", id).Update("status", "ditutup").Error; err != nil {
@@ -108,9 +102,6 @@ func RestoreJobs(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"msg": "Job berhasil dipulihkan"})
 }
 
-// Author: Arga
-// PBI: KF-17
-// Sprint: Sprint 2
 func AdminGetTransactions(c *gin.Context) {
 	var results []struct {
 		ProjectID      uint    `json:"project_id"`
