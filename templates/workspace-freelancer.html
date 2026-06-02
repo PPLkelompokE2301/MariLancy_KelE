@@ -104,7 +104,8 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label class="text-xs font-semibold text-gray-700 block mb-1">Link Eksternal (G-Drive, Figma, Github, dll)</label>
-          <input type="url" id="submissionLink" oninput="validateCompletionRules()" placeholder="https://..." class="input-form bg-white">
+          <input type="url" id="submissionLink" oninput="validateCompletionRules()" placeholder="https://contoh.com" class="input-form bg-white">
+          <p id="linkErrorMsg" class="text-[10px] text-red-500 font-medium mt-1 hidden">Format link tidak valid. Pastikan menggunakan http:// atau https://</p>
         </div>
         <div>
           <label class="text-xs font-semibold text-gray-700 block mb-1">Atau Unggah File (.zip, .pdf, dll)</label>
@@ -325,32 +326,55 @@
     setActiveByURL();
 
     function validateCompletionRules() {
-      const btnComplete = document.getElementById("btnCompleteProject");
-      const linkVal = document.getElementById("submissionLink").value.trim();
-      const fileVal = document.getElementById("submissionFile").files.length;
+        const btnComplete = document.getElementById("btnCompleteProject");
+        const linkInput = document.getElementById("submissionLink");
+        const linkVal = linkInput.value.trim();
+        const fileVal = document.getElementById("submissionFile").files.length;
+        const errorMsg = document.getElementById("linkErrorMsg");
 
-      if (isProjectCompleted) {
-          btnComplete.innerText = "Telah Diselesaikan \u2714";
-          btnComplete.className = "px-5 py-2.5 bg-green-500 text-white rounded-xl text-sm font-bold shadow-sm cursor-not-allowed";
-          btnComplete.disabled = true;
-          return;
-      }
+        if (isProjectCompleted) {
+            btnComplete.innerText = "Telah Diselesaikan \u2714";
+            btnComplete.className = "px-5 py-2.5 bg-green-500 text-white rounded-xl text-sm font-bold shadow-sm cursor-not-allowed";
+            btnComplete.disabled = true;
+            return;
+        }
 
-      if (currentProgress === 100 && tasks.length > 0) {
-          if (linkVal !== "" || fileVal > 0) {
-              btnComplete.innerText = "Selesaikan Proyek";
-              btnComplete.className = "px-5 py-2.5 bg-[#2b9c96] hover:bg-[#23827d] text-white rounded-xl text-sm font-bold shadow-md cursor-pointer hover:-translate-y-0.5 transition-all";
-              btnComplete.disabled = false;
-          } else {
-              btnComplete.innerText = "Isi Link / Upload File";
-              btnComplete.className = "px-5 py-2.5 bg-yellow-500 text-white rounded-xl text-sm font-bold shadow-sm cursor-not-allowed";
-              btnComplete.disabled = true;
-          }
-      } else {
-          btnComplete.innerText = "Menunggu Task 100%";
-          btnComplete.className = "px-5 py-2.5 bg-gray-300 text-white rounded-xl text-sm font-bold shadow-sm cursor-not-allowed";
-          btnComplete.disabled = true;
-      }
+        let isValidLink = false;
+        if (linkVal !== "") {
+            try {
+                new URL(linkVal);
+                isValidLink = true;
+                errorMsg.classList.add("hidden");
+                linkInput.classList.remove("border-red-500", "focus:border-red-500");
+            } catch (e) {
+                isValidLink = false;
+                errorMsg.classList.remove("hidden");
+                linkInput.classList.add("border-red-500", "focus:border-red-500");
+            }
+        } else {
+            errorMsg.classList.add("hidden");
+            linkInput.classList.remove("border-red-500", "focus:border-red-500");
+        }
+
+        if (currentProgress === 100 && tasks.length > 0) {
+            if ((isValidLink || fileVal > 0) && !(linkVal !== "" && !isValidLink)) {
+                btnComplete.innerText = "Selesaikan Proyek";
+                btnComplete.className = "px-5 py-2.5 bg-[#2b9c96] hover:bg-[#23827d] text-white rounded-xl text-sm font-bold shadow-md cursor-pointer hover:-translate-y-0.5 transition-all";
+                btnComplete.disabled = false;
+            } else if (linkVal !== "" && !isValidLink) {
+                btnComplete.innerText = "Format Link Salah";
+                btnComplete.className = "px-5 py-2.5 bg-red-500 text-white rounded-xl text-sm font-bold shadow-sm cursor-not-allowed";
+                btnComplete.disabled = true;
+            } else {
+                btnComplete.innerText = "Isi Link / Upload File";
+                btnComplete.className = "px-5 py-2.5 bg-yellow-500 text-white rounded-xl text-sm font-bold shadow-sm cursor-not-allowed";
+                btnComplete.disabled = true;
+            }
+        } else {
+            btnComplete.innerText = "Menunggu Task 100%";
+            btnComplete.className = "px-5 py-2.5 bg-gray-300 text-white rounded-xl text-sm font-bold shadow-sm cursor-not-allowed";
+            btnComplete.disabled = true;
+        }
     }
 
     async function loadUserProfile() {
