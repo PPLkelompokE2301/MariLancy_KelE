@@ -109,7 +109,7 @@ func UpdateTaskStatus(c *gin.Context) {
 		if newProgress > 0 && newProgress < 100 && project.Status == "active" {
 			newStatus = "inprogress"
 		} else if newProgress == 0 && project.Status == "inprogress" {
-			newStatus = "active" 
+			newStatus = "active"
 		}
 
 		config.DB.Model(&models.Project{}).Where("id = ?", project.ID).Updates(map[string]interface{}{
@@ -183,6 +183,8 @@ func RequestRevision(c *gin.Context) {
 	}
 
 	project.Status = "active"
+	project.SubmissionLink = ""
+	project.SubmissionFile = ""
 
 	if err := config.DB.Save(&project).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal meminta pengiriman ulang"})
@@ -190,6 +192,227 @@ func RequestRevision(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Proyek dibuka kembali untuk revisi"})
+}
+
+func ConfirmPayment(c *gin.Context) {
+	projectID := c.Param("id")
+
+	var project models.Project
+	if err := config.DB.Preload("Job").Preload("Transactions").Where("id = ?", projectID).First(&project).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Project tidak ditemukan"})
+		return
+	}
+
+	if len(project.Transactions) > 0 {
+		lastTx := project.Transactions[len(project.Transactions)-1]
+
+		if lastTx.Status == "success" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Project ini sudah lunas, tidak perlu membayar lagi."})
+			return
+		}
+		if lastTx.Status == "pending" || lastTx.Status == "process" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Pembayaran sebelumnya sedang diproses. Harap tunggu konfirmasi."})
+			return
+		}
+	}
+
+	nominalStr := c.PostForm("nominal")
+	nominal, errParse := strconv.ParseFloat(nominalStr, 64)
+	if errParse != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Nominal pembayaran tidak valid!"})
+		return
+	}
+
+	budgetStr := project.Job.Budget
+	parts := strings.Split(budgetStr, "-")
+	minBudgetStr := strings.TrimSpace(parts[0])
+
+	cleanBudgetStr := strings.Map(func(r rune) rune {
+		if r >= '0' && r <= '9' {
+			return r
+		}
+		return -1
+	}, minBudgetStr)
+
+	minBudget, _ := strconv.ParseFloat(cleanBudgetStr, 64)
+
+	if nominal < minBudget {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": fmt.Sprintf("Pembayaran minimal adalah Rp %.0f", minBudget),
+		})
+		return
+	}
+
+	file, errFile := c.FormFile("bukti_transfer")
+	if errFile != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Harap unggah bukti transfer!",
+		})
+		return
+	}
+
+	fileName := fmt.Sprintf("pay_%d_%s", time.Now().Unix(), filepath.Base(file.Filename))
+	savePath := filepath.Join("uploads", fileName)
+
+	if err := c.SaveUploadedFile(file, savePath); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Gagal simpan file",
+		})
+		return
+	}
+
+	fileURL := "/" + filepath.ToSlash(savePath)
+
+	newTransaction := models.Transaction{
+		ProjectID:     project.ID,
+		ClientID:      project.ClientID,
+		FreelancerID:  project.FreelancerID,
+		Nominal:       nominal,
+		BuktiTransfer: fileURL,
+		Status:        "pending",
+	}
+
+	if err := config.DB.Create(&newTransaction).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Gagal simpan transaksi",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Pembayaran berhasil dikirim ulang dan sedang diproses.",
+	})
+}
+
+func GetMyProjects(c *gin.Context) {
+	userID, ok := getUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	var projects []models.Project
+	if err := config.DB.Preload("Job").Preload("Client").Preload("Tasks").Preload("Transactions").Where("freelancer_id = ?", userID).Order("created_at desc").Find(&projects).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal mengambil data proyek"})
+		return
+	}
+
+	var result []gin.H
+	for _, p := range projects {
+		totalTasks := len(p.Tasks)
+		completedTasks := 0
+		for _, t := range p.Tasks {
+			if t.Status == "done" {
+				completedTasks++
+			}
+		}
+
+		progress := 0
+		if totalTasks > 0 {
+			progress = (completedTasks * 100) / totalTasks
+		}
+
+		statusPembayaran := "belum dibayar"
+		if len(p.Transactions) > 0 {
+			var latestTx models.Transaction
+			for _, tx := range p.Transactions {
+				if tx.ID > latestTx.ID {
+					latestTx = tx
+				}
+			}
+
+			switch latestTx.Status {
+			case "pending":
+				statusPembayaran = "sedang diproses"
+			case "process":
+				statusPembayaran = "sedang diproses"
+			case "success":
+				statusPembayaran = "sudah bayar"
+			case "rejected":
+				statusPembayaran = "ditolak"
+			default:
+				statusPembayaran = "belum dibayar"
+			}
+		}
+
+		result = append(result, gin.H{
+			"id":                p.ID,
+			"status":            p.Status,
+			"job":               p.Job,
+			"client":            p.Client,
+			"progress":          progress,
+			"tasks":             p.Tasks,
+			"start_date":        p.StartDate,
+			"end_date":          p.EndDate,
+			"status_pembayaran": statusPembayaran,
+			"transactions":      p.Transactions,
+		})
+	}
+
+	c.JSON(http.StatusOK, result)
+}
+
+func GetClientTransactions(c *gin.Context) {
+	userID, _ := getUserID(c)
+	var txs []models.Transaction
+	config.DB.Preload("Project.Job").Preload("Project.Freelancer").Where("client_id = ?", userID).Find(&txs)
+	c.JSON(200, txs)
+}
+
+func UpdateTransactionStatus(c *gin.Context) {
+	id := c.Param("id")
+	var input struct {
+		Status string `json:"status"`
+	}
+	c.ShouldBindJSON(&input)
+	config.DB.Model(&models.Transaction{}).Where("id = ?", id).Update("status", input.Status)
+	c.JSON(200, gin.H{"message": "Status updated"})
+}
+
+func GetClientProjects(c *gin.Context) {
+	userID, _ := getUserID(c)
+	var projects []models.Project
+
+	if err := config.DB.Preload("Job").Preload("Freelancer").Preload("Tasks").Preload("Transactions").Where("client_id = ?", userID).Find(&projects).Error; err != nil {
+		c.JSON(500, gin.H{"error": "Gagal ambil data"})
+		return
+	}
+
+	var result []gin.H
+	for _, p := range projects {
+		totalTasks := len(p.Tasks)
+		completedTasks := 0
+		for _, t := range p.Tasks {
+			if t.Status == "done" {
+				completedTasks++
+			}
+		}
+
+		progress := 0
+		if totalTasks > 0 {
+			progress = (completedTasks * 100) / totalTasks
+		}
+
+		statusPembayaran := "belum dibayar"
+		if len(p.Transactions) > 0 {
+			lastTx := p.Transactions[len(p.Transactions)-1]
+			statusPembayaran = lastTx.Status
+		}
+
+		result = append(result, gin.H{
+			"id":                p.ID,
+			"status":            p.Status,
+			"job":               p.Job,
+			"freelancer":        p.Freelancer,
+			"progress":          progress,
+			"start_date":        p.StartDate,
+			"end_date":          p.EndDate,
+			"status_pembayaran": statusPembayaran,
+			"transactions":      p.Transactions,
+		})
+	}
+
+	c.JSON(http.StatusOK, result)
 }
 
 func DeleteTask(c *gin.Context) {
