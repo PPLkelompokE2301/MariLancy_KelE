@@ -1,12 +1,17 @@
 // Author: Fadhil
 // PBI: KF-02
 // Sprint: Sprint 1
+
+// Author: Arga
+// PBI: KF-01
+// Sprint: Sprint 1
 package controllers
 
 import (
 	"fmt"
 	"marilancy/config"
 	"marilancy/models"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -27,6 +32,11 @@ func Register(c *gin.Context) {
 		return
 	}
 
+	if !strings.HasSuffix(strings.ToLower(input.Email), "@gmail.com") {
+		c.JSON(400, gin.H{"error": "Hanya email dengan format @gmail.com yang dapat didaftarkan"})
+		return
+	}
+
 	hash, err := bcrypt.GenerateFromPassword([]byte(input.Password), 10)
 	if err != nil {
 		c.JSON(500, gin.H{"error": "Gagal hash password"})
@@ -34,7 +44,6 @@ func Register(c *gin.Context) {
 	}
 
 	switch input.Role {
-
 	case "freelancer":
 		err = config.DB.Create(&models.Freelancer{
 			Nama:     input.Nama,
@@ -84,14 +93,20 @@ func Login(c *gin.Context) {
 		return
 	}
 
+	if !strings.HasSuffix(strings.ToLower(input.Email), "@gmail.com") {
+		c.JSON(400, gin.H{"error": "Gunakan email @gmail.com untuk login"})
+		return
+	}
+
 	var userID uint
-	var email, pass, role string
+	var email, pass, role, userStatus string
 
 	var client models.Client
 	if err := config.DB.Where("email = ?", input.Email).First(&client).Error; err == nil {
 		userID = client.ID
 		email = client.Email
 		pass = client.Password
+		userStatus = client.Status
 		role = "client"
 	}
 
@@ -101,6 +116,7 @@ func Login(c *gin.Context) {
 			userID = freelancer.ID
 			email = freelancer.Email
 			pass = freelancer.Password
+			userStatus = freelancer.Status
 			role = "freelancer"
 		}
 	}
@@ -111,12 +127,17 @@ func Login(c *gin.Context) {
 			userID = admin.ID
 			email = admin.Email
 			pass = admin.Password
-			role = "admin"
+			role = "admin" 
+			userStatus = "active"
 		}
 	}
 
 	if role == "" {
 		c.JSON(400, gin.H{"error": "User tidak ditemukan"})
+		return
+	}
+	if userStatus == "suspended" {
+		c.JSON(403, gin.H{"error": "Akun ini telah di-suspend karena indikasi pelanggaran. Silakan hubungi admin."})
 		return
 	}
 
